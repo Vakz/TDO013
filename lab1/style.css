@@ -57,11 +57,12 @@ html, body{
 }
 
 .alignDiv{
-  display: table-cell;
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
   word-wrap: break-word;
   clear: right;
   width: 700px;
+  max-width: 700px;
   height: 80px;
 }
 
@@ -76,14 +77,18 @@ html, body{
 .messageText {
   padding-left: 10px;
   word-wrap: break-word;
-  width: 95%;
+  width: 660px;
+  max-width: 660px;
 }
 
 .messageContainer input {
-  display: inline-block;
+  display: inline;
   float: right;
   margin: 0 auto;
   transform: scale(1.3);
-  margin-right: 20px;
-  vertical-align: bottom;
+  margin-right: 10px;
+}
+
+.messageContainer input:focus {
+  outline: 0 none;
 }
