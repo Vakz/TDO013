@@ -24,8 +24,16 @@ class ChatTest < Test::Unit::TestCase
     @driver.find_element(:id, 'sendButton').click
 
     checkbox = @driver.find_element(:css, '[type=checkbox]')
+
+    # Make sure setting read works
     checkbox.click
     assert(checkbox.attribute('checked'))
+    assert(checkbox.attribute('disabled'))
+
+    # Make sure checkbox is properly disabled and unclickable
+    checkbox.click
+    assert(checkbox.attribute('checked'))
+    assert(checkbox.attribute('disabled'))
   end
 
   def teardown
