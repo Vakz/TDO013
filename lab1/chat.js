@@ -1,11 +1,9 @@
-
-
-
 $(document).ready(function() {
   $("#sendButton").click(function() {
     var tAC = $("#msgInput").val().trim();
     if (tAC.length > 0 && tAC.length <= 140) {
       $("#messages").prepend(constructMessage(tAC));
+      $("#msgInput").val("");
       $("#warning").toggle(false);
     }
     else {
