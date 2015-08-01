@@ -94,16 +94,10 @@ describe('Handlers', function() {
     });
   });
 
-  /*
-  describe('Attempt to flag non-valid id', function() {
-    it('should return error', function() {
-      handler.flag("-1")
+  after(function(done) {
+    db.dropCollection(collectionName, function(err, r) {
+      db.close();
+      done();
     });
   });
-  */
-
-  after(function(done) {
-    db.close();
-    done();
-  })
 });
