@@ -2,4 +2,8 @@
 
 Requires mongodb driver
 
-To run tests, requires mocha, should and superagent
+To run tests, requires:
+ - mocha
+ - should
+ - superagent
+ - node-mocks-http

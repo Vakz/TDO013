@@ -1,7 +1,7 @@
 var should = require('should');
 var assert = require('assert');
 
-var Handler = require('../lib/databaseHandler.js');
+var DatabaseHandler = require('../lib/databaseHandler.js');
 var errors = require('../lib/errors.js');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;

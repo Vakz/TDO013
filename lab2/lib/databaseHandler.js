@@ -1,5 +1,3 @@
-// Returns true on success, else Error
-
 var ArgumentError = require('./errors.js').ArgumentError;
 var DatabaseError = require('./errors.js').DatabaseError;
 var ObjectID = require('mongodb').ObjectID;
@@ -19,7 +17,6 @@ var DatabaseHandler = function(collection){
       if (err) done && done(new DatabaseError(err), false);
       else done(null, r.ops[0]);
     });
-
   };
 
   this.flag = function(msgId, done) {
