@@ -1,13 +1,12 @@
 var should = require('should');
 var assert = require('assert');
 
-require('blanket');
-var Handler = require('../lib/handlers.js');
+var Handler = require('../lib/databaseHandler.js');
 var errors = require('../lib/errors.js');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;
 
-describe('Handlers', function() {
+describe('DatabaseHandler', function() {
   var db = null;
   var collectionName = 'test_chat';
   var collection = null;
@@ -28,7 +27,7 @@ describe('Handlers', function() {
       db = _db;
       db.dropCollection(collectionName, function(err, r) {
         collection = db.collection(collectionName);
-        handler = new Handler(collection);
+        handler = new DatabaseHandler(collection);
         done();
       });
     });

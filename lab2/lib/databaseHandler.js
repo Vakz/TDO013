@@ -4,7 +4,7 @@ var ArgumentError = require('./errors.js').ArgumentError;
 var DatabaseError = require('./errors.js').DatabaseError;
 var ObjectID = require('mongodb').ObjectID;
 // db should be a url to a mongodb
-var Handler = function(collection){
+var DatabaseHandler = function(collection){
   var collection = collection;
 
   this.save = function(msg, done) {
@@ -55,4 +55,4 @@ var Handler = function(collection){
   };
 };
 
-module.exports = Handler;
+module.exports = DatabaseHandler;

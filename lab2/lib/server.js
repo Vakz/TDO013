@@ -4,9 +4,9 @@ require('http');
 require('url');
 var MongoClient = require('MongoClient');
 
-function startServer(router, handlers, db) {
+function startServer(router, handler, db) {
   http.createServer(function(request, response) {
-    router(url.parse(request.url).pathname, router, request, response);
+    router(url.parse(request.url).pathname, handler, request, response);
   }).listen(8888);
 }
 
