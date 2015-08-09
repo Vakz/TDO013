@@ -51,8 +51,7 @@ function RequestHandler(collectionName) {
     if (db) db.close();
   };
 
-  this.save = function(request, response, done) {
-    done = done || function() {};
+  this.save = function(request, response) {
     var msg = paramHandler(request, response, 'msg');
     if (msg === undefined) {
       return;
@@ -61,11 +60,10 @@ function RequestHandler(collectionName) {
       databaseHandler.save(msg, function(err, msgDbObj) {
         if (err) {
           errorHandler(response, err);
-          done(err, false);
         }
         else {
           response.writeHead(200, {'Content-Type': 'text/html'});
-          done(null, true);
+          response.end();
         }
       });
     }
