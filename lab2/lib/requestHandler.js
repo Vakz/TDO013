@@ -68,6 +68,38 @@ function RequestHandler(collectionName) {
       });
     }
   }
+
+  this.flag = function(request, response) {
+    var id = paramHandler(request, response, 'ID');
+
+    if (id === undefined) {
+      return;
+    }
+    else {
+      databaseHandler.flag(id, function(err, successful) {
+        if (err) {
+          errorHandler(response, err);
+        }
+        else {
+          response.writeHead(200, {'Content-Type': 'text/html'});
+          response.end();
+        }
+      });
+    }
+  }
+
+  this.getall = function(request, response) {
+    var messages = databaseHandler.getall(function(err, result) {
+      if (err) {
+        errorHandler(response, err);
+      }
+      else {
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.write(JSON.stringify(result));
+        response.end();
+      }
+    });
+  }
 };
 
 module.exports = RequestHandler;

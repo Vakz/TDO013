@@ -158,11 +158,9 @@ describe('DatabaseHandler', function() {
 
     describe('Get message', function() {
       before('save a message to later get', function(done) {
-        handler.save('a message', function(err, r) {
-          collection.count(function(err, count) {
-            count.should.equal(1);
-            done();
-          });
+        collection.insertOne({'message': 'a message'}, function(err, r) {
+          r.insertedCount.should.equal(1);
+          done();
         });
       });
 
@@ -177,16 +175,11 @@ describe('DatabaseHandler', function() {
 
     describe('Get several messages', function() {
       before('save three messages to later get', function(done) {
-        handler.save('message 1', function(err, r) {
-          handler.save('message 2', function(err, r) {
-            handler.save('message 3', function(err, r) {
-              collection.count(function(err, count) {
-                count.should.equal(3);
-                done();
-              });
-            });
+        collection.insertMany([{'message': 'message 1'}, {'message': 'message 2'},
+          {'message': 'message 3'}], function(err, r) {
+            r.insertedCount.should.equal(3);
+            done();
           });
-        });
       });
 
       it('should return exactly three messages', function(done) {

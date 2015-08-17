@@ -14,7 +14,7 @@ var DatabaseHandler = function(collection){
       return;
     }
     collection.insertOne({'message': msg, 'flag': false}, function(err, r) {
-      if (err) done && done(new DatabaseError(err), false);
+      if (err) done(new DatabaseError(err), false);
       else done(null, r.ops[0]);
     });
   };
@@ -31,7 +31,7 @@ var DatabaseHandler = function(collection){
           done(new DatabaseError(err), false);
         }
         else if (r.result['nModified'] == 0) {
-           done(new ArgumentError("No message with id" + msgId), false);
+           done(new ArgumentError("No message with id " + msgId), false);
         }
         else {
           done(null, true);
@@ -44,7 +44,8 @@ var DatabaseHandler = function(collection){
 
     collection.find().toArray(function(err, result) {
       result.map(function(doc) {
-        doc['_id'] = doc['_id'].toString();
+        doc['id'] = doc['_id'].toString();
+        delete doc._id;
       });
       if(err) done(new DatabaseError(err), null)
       else done(null, result);

@@ -27,8 +27,6 @@ describe('RequestHandler', function() {
   var requestHandler = null;
   var collection = null;
 
-
-
   var cleanDb = function(done) {
     // Clear collection after each test
 
@@ -76,7 +74,7 @@ describe('RequestHandler', function() {
 
     describe('Supply empty parameter', function() {
       it('should return 400', function(done) {
-        var request = httpMocks.createRequest({'url': '/?msg='});
+        var request = httpMocks.createRequest({'url': '/save?msg='});
 
         var response = setupResponse(function(data) {
           data.should.equal('Invalid message');
@@ -90,7 +88,7 @@ describe('RequestHandler', function() {
 
     describe('Save valid parameter', function() {
       it('should return 200 OK', function(done) {
-        var request = httpMocks.createRequest({'url': '?msg=message'});
+        var request = httpMocks.createRequest({'url': '/save?msg=message'});
 
         var response = setupResponse(function(data) {
           response.statusCode.should.equal(200);
@@ -109,7 +107,7 @@ describe('RequestHandler', function() {
     describe('Save too long parameter', function() {
       it('should return 400', function(done) {
         var request = httpMocks.createRequest(
-          {'url': '?msg=' + Array(142).join("a")});
+          {'url': '/save?msg=' + Array(142).join("a")});
 
           var response = setupResponse(function(data) {
             response.statusCode.should.equal(400);
@@ -121,11 +119,11 @@ describe('RequestHandler', function() {
     })
   });
 
-  describe.skip('Flag', function() {
+  describe('Flag', function() {
     describe('Flag non-existant message with valid id', function() {
       it('should return 400 with appropriate message', function(done) {
         var request = httpMocks.createRequest(
-          {'url': '?flag=123456789012123456789012'});
+          {'url': '/flag?ID=123456789012123456789012'});
 
           var response = setupResponse(function(data) {
             response.statusCode.should.equal(400);
@@ -137,32 +135,46 @@ describe('RequestHandler', function() {
       });
     });
 
-    describe('Flag invalid id', function() {
+    describe('Flag without id', function() {
       it('should return 400 with appropriate message', function(done) {
-        var request = httpMocks.createRequest();
+        var request = httpMocks.createRequest({'url': '/flag'});
+
+        var response = setupResponse(function(data) {
+          response.statusCode.should.equal(400);
+          data.should.equal('No parameter "ID"');
+          done();
+        });
+
+        requestHandler.flag(request, response);
+      });
+    });
+
+    describe('Flag with invalid id', function() {
+      it('should return 400 with appropriate message', function(done) {
+        var request = httpMocks.createRequest({'url': '/flag?ID=a'});
 
         var response = setupResponse(function(data) {
           response.statusCode.should.equal(400);
           data.should.equal("Invalid id");
           done();
         });
-      });
-    });
+
+        requestHandler.flag(request, response);
+      })
+    })
 
     describe('Flag existing message', function() {
       var msgId = null;
       before('save a message to flag', function(done) {
-        handler.save("a", function(err, result) {
-          msgId = result["_id"].toString();
-          collection.count(function(err, count) {
-            count.should.equal(1);
-            done();
-          })
+        collection.insertOne({'message': 'a', 'flag': false}, function(err, result) {
+          msgId = result.ops[0]["_id"].toString();
+          result.insertedCount.should.equal(1);
+          done();
         });
       });
 
-      it('should return 200 OK', function() {
-        var request = httpMocks.createRequest({'url': '?ID=' + msgId});
+      it('should return 200 OK', function(done) {
+        var request = httpMocks.createRequest({'url': '/flag?ID=' + msgId});
 
         var response = setupResponse(function(data) {
           response.statusCode.should.equal(200);
@@ -171,8 +183,87 @@ describe('RequestHandler', function() {
             docs[0]['flag'].should.be.ok();
             done();
           });
-        })
+        });
+
+        requestHandler.flag(request, response);
       });
+
+      after(cleanDb);
+    });
+  });
+
+  describe('Getall', function() {
+    describe('Get all messages from empty db', function() {
+      it('should return empty stringified list', function(done) {
+        var request = httpMocks.createRequest({'url': '/getall'});
+
+        var response = setupResponse(function(data) {
+          response.statusCode.should.equal(200);
+          response.getHeader('Content-Type').should.equal('application/json');
+          JSON.parse(data).length.should.equal(0);
+          done();
+        });
+
+        requestHandler.getall(request, response);
+      });
+    });
+
+    describe('Get all messages from db with single message', function() {
+      var msgId = null;
+      var msg = 'message';
+      before('save a message to flag', function(done) {
+        collection.insertOne({'message': msg, 'flag': false}, function(err, result) {
+          msgId = result.ops[0]["_id"].toString();
+          result.insertedCount.should.equal(1);
+          done();
+        });
+      });
+
+      it('should return stringified list containing single message', function(done) {
+        var request = httpMocks.createRequest({'url': '/getall'});
+
+        var response = setupResponse(function(data) {
+          response.statusCode.should.equal(200);
+          response.getHeader('Content-Type').should.equal('application/json');
+
+          var message = JSON.parse(data)[0];
+          message['message'].should.equal(msg);
+          message['id'].should.equal(msgId);
+          message['flag'].should.not.be.ok();
+
+          done();
+        });
+
+        requestHandler.getall(request, response);
+      });
+
+      after(cleanDb);
+    });
+
+    describe('Get all messages from db with two messages', function() {
+      before('save messages to flag', function(done) {
+        collection.insertMany([{'message': "message1"}, {'message': "message2"}]
+          , function(err, result) {
+            result.insertedCount.should.equal(2);
+            done();
+        });
+      });
+
+      it('should return array with two messags', function(done) {
+        var request = httpMocks.createRequest({'url': '/getall'});
+
+        var response = setupResponse(function(data) {
+          response.statusCode.should.equal(200);
+          response.getHeader('Content-Type').should.equal('application/json');
+
+          JSON.parse(data).length.should.equal(2);;
+          done();
+        });
+
+        requestHandler.getall(request, response);
+      });
+
+      after(cleanDb);
     });
   });
 
