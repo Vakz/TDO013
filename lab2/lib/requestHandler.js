@@ -2,7 +2,7 @@ var errors = require('./errors');
 var DatabaseHandler = require('./databaseHandler');
 var url = require('url');
 
-function RequestHandler(collectionName) {
+var RequestHandler = function (collectionName) {
   var databaseHandler = null;
   var db = null;
   var mongoAdress = 'mongodb://127.0.0.1:27017/test';
@@ -35,6 +35,7 @@ function RequestHandler(collectionName) {
 
   // Connect to the database
   this.connect = function(done) {
+    done = done || function() {};
     require('mongodb').MongoClient.connect(mongoAdress, function(err, _db) {
       if (err) {
         done(new errors.DatabaseError(err), null);
