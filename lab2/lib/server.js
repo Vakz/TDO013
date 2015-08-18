@@ -5,9 +5,13 @@ var url = require('url');
 var RequestHandler = require('./requestHandler');
 
 var Server = function(collectionName) {
+  collectionName = collectionName || 'chat';
   var requestHandler = new RequestHandler(collectionName);
   requestHandler.connect();
   var outer = this;
+  var internalServer = http.createServer(function(request, response) {
+    outer.route(request, response);
+  });
 
   this.route = function(request, response) {
     var urlParts = url.parse(request.url);
@@ -17,8 +21,9 @@ var Server = function(collectionName) {
     if (request.method == 'POST') {
       response.writeHead(405, {'Content-Type': 'text/html'});
       response.write("Wrong method, POST not allowed");
+      response.end();
     }
-    if (path !== '' && typeof requestHandler[path] === 'function') {
+    else if (path !== '' && typeof requestHandler[path] === 'function') {
       requestHandler[path](request, response);
     }
     else {
@@ -29,15 +34,18 @@ var Server = function(collectionName) {
   }
 
   this.start = function() {
-    http.createServer(function(request, response) {
-      outer.route(request, response);
-    }).listen(8888);
+    console.log("Starting server, now accepting connections..")
+    internalServer.listen(8888);
+  }
+    internalServer.close(function(err, r) {
+      console.log("Stopping server..");
+    });
   }
 }
 
 // If this is the main file, start server. Else export module.
 if (require.main === module) {
-  var server = new Server('chat');
+  var server = new Server();
   server.start();
 }
 else {
