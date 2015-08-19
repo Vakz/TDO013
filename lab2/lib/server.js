@@ -7,15 +7,25 @@ var RequestHandler = require('./requestHandler');
 var Server = function(collectionName) {
   collectionName = collectionName || 'chat';
   var requestHandler = new RequestHandler(collectionName);
-  requestHandler.connect();
   var outer = this;
+  var connections = [];
   var internalServer = http.createServer(function(request, response) {
     outer.route(request, response);
   });
+  internalServer.on('connection', function(socket) {
+    console.log('New incoming connection..');
+    connections[connections.length] = socket;
+    socket.on('close', function() {
+      console.log('Closing connection..');
+      connections.splice(connections.indexOf(socket), 1);
+    });
+  })
+
 
   this.route = function(request, response) {
     var urlParts = url.parse(request.url);
     var path = urlParts.pathname.substring(1);
+
     console.log("About to route a request for " + path);
 
     if (request.method == 'POST') {
@@ -33,13 +43,22 @@ var Server = function(collectionName) {
     }
   }
 
+  // Start accepting connections and connect to database
   this.start = function() {
     console.log("Starting server, now accepting connections..")
     internalServer.listen(8888);
+    requestHandler.connect();
   }
+
+  // Stop all incoming connections and close db
+  this.stop = function() {
     internalServer.close(function(err, r) {
       console.log("Stopping server..");
     });
+    connections.forEach(function(socket) {
+      socket.destroy();
+    });
+    requestHandler.closeDb();
   }
 }
 
