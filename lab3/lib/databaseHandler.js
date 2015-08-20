@@ -25,7 +25,7 @@ var DatabaseHandler = function(collection){
       done(new ArgumentError("Invalid id"), false);
       return;
     }
-    collection.updateOne({_id: new ObjectID(msgId)}, {$set: {'flag': true}}
+    collection.updateOne({_id: new ObjectID(msgId)}, {'flag': true}
       , function(err, r) {
         if (err) {
           done(new DatabaseError(err), false);

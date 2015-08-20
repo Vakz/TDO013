@@ -7,16 +7,27 @@ var RequestHandler = function (collectionName) {
   var db = null;
   var mongoAdress = 'mongodb://127.0.0.1:27017/test';
 
+  var createHeaders = function(contentType) {
+    var headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
+    };
+    if (contentType) headers['Content-Type'] = contentType;
+    return headers;
+  }
+
+
   var errorHandler = function(response, err) {
     if (err instanceof errors.ArgumentError) {
-      response.writeHead(400, {'Content-Type': 'text/html'});
+
+      response.writeHead(400, createHeaders('text/html'));
       response.write(err.message);
       response.end();
     }
     else {
       // 503 would be more correct for database error, but is not covered
       // by lab specification
-      response.writeHead(500, {'Content-Type': 'text/html'});
+      response.writeHead(500, createHeaders('text/plain'));
       response.write("Unknown server error");
       response.end();
     }
@@ -63,7 +74,9 @@ var RequestHandler = function (collectionName) {
           errorHandler(response, err);
         }
         else {
-          response.writeHead(200, {'Content-Type': 'text/html'});
+
+          response.writeHead(200, createHeaders('application/json'));
+          response.write(JSON.stringify([{'id': msgDbObj._id}]));
           response.end();
         }
       });
@@ -82,7 +95,7 @@ var RequestHandler = function (collectionName) {
           errorHandler(response, err);
         }
         else {
-          response.writeHead(200, {'Content-Type': 'text/html'});
+          response.writeHead(200, createHeaders('text/html'));
           response.end();
         }
       });
@@ -95,7 +108,7 @@ var RequestHandler = function (collectionName) {
         errorHandler(response, err);
       }
       else {
-        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.writeHead(200, createHeaders('application/json'));
         response.write(JSON.stringify(result));
         response.end();
       }

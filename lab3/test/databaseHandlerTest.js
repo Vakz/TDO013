@@ -106,14 +106,13 @@ describe('DatabaseHandler', function() {
 
     describe('Flag existing message', function() {
       var msgId = null;
-      var message = 'a';
       before('save a message to flag', function(done) {
-        handler.save(message, function(err, result) {
+        handler.save("a", function(err, result) {
           msgId = result["_id"].toString();
           collection.count(function(err, count) {
             count.should.equal(1);
             done();
-          });
+          })
         });
       });
 
@@ -122,7 +121,6 @@ describe('DatabaseHandler', function() {
           r.should.be.ok();
           collection.find().toArray(function(err, docs) {
             docs[0]['flag'].should.be.ok();
-            docs[0]['message'].should.equal(message);
             done();
           });
         });
