@@ -6,10 +6,6 @@ var RequestHandler = require('./requestHandler');
 
 var Server = function(collectionName) {
   collectionName = collectionName || 'chat';
-  var headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
-  };
   var requestHandler = new RequestHandler(collectionName);
   var outer = this;
   var connections = [];
