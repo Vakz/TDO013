@@ -1,9 +1,10 @@
 "use strict";
 
-var errors = require('./errors.js')
+var errors = require('./errors')
 var mongodb = require('mongodb');
+var config = require('./config')
 
-var DatabaseHandler = function(settings) {
+var DatabaseHandler = function() {
   var db = null;
   var connected = false;
 
@@ -13,15 +14,17 @@ var DatabaseHandler = function(settings) {
       return;
     }
     done = done || function() {};
-    mongodb.MongoClient.connect(settings['address'], function(err, _db) {
-      if (err) {
-        done(new errors.DatabaseError(err), null)
-        return;
-      }
-      db = _db;
-      done(null, true);
-      connected = true;
-    };
+    mongodb.MongoClient.connect(
+      config.get('database:address') + config.get('database:db'),
+      function(err, _db) {
+        if (err) {
+          done(new errors.DatabaseError(err), null)
+          return;
+        }
+        db = _db;
+        done(null, true);
+        connected = true;
+      });
 
     this.close = function() {
       if (db) db.close();
@@ -29,3 +32,5 @@ var DatabaseHandler = function(settings) {
     };
   }
 }
+
+module.exports = DatabaseHandler;

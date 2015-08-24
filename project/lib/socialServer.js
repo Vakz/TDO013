@@ -3,28 +3,24 @@
 var express = require('express');
 var errors = require('./errors')
 var DatabaseHandler = require('./databaseHandler');
+var config = require('./config');
 
-var SocialServer = function(settings) {
+var SocialServer = function() {
   var app = express();
-  var dbHandler = new DatabaseHandler({'address'})
+  var dbHandler = new DatabaseHandler();
   app.use(express.static('static'));
-
-  settings = settings || {};
-  settings['port'] = settings['port'] || 8888;
-  settings['db'] = settings['db'] || 'social_website';
 
   app.get('/', function(req, res) {
 
   });
 
   this.start = function() {
-    if (settings['port'] === parseInt(settings['port'], 10)) {
-      app.listen(settings['port']);
+    if (config.get('port') === parseInt(config.get('port'), 10)) {
+      app.listen(config.get('port'));
     }
     else{
       throw new errors.ArgumentError("Port number not an integer");
     }
-
   }
 }
 
