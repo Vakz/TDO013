@@ -15,13 +15,18 @@ var SocialServer = function() {
   });
 
   this.start = function() {
-    if (config.get('port') === parseInt(config.get('port'), 10)) {
+    if (Number.isInteger(config.get('port'))) {
       app.listen(config.get('port'));
     }
     else{
       throw new errors.ArgumentError("Port number not an integer");
     }
-  }
-}
+  };
+
+  this.stop = function() {
+    dbHandler.stop();
+    app.close();
+  };
+};
 
 module.exports = SocialServer;
