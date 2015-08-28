@@ -9,16 +9,12 @@ var RequestHandler = function (collectionName) {
 
   var errorHandler = function(response, err) {
     if (err instanceof errors.ArgumentError) {
-      response.writeHead(400, {'Content-Type': 'text/html'});
-      response.write(err.message);
-      response.end();
+      response.status(400).send(err.message);
     }
     else {
       // 503 would be more correct for database error, but is not covered
       // by lab specification
-      response.writeHead(500, {'Content-Type': 'text/html'});
-      response.write("Unknown server error");
-      response.end();
+      response.status(500).send("Unknown server error");
     }
   }
 
@@ -39,12 +35,11 @@ var RequestHandler = function (collectionName) {
     require('mongodb').MongoClient.connect(mongoAdress, function(err, _db) {
       if (err) {
         done(new errors.DatabaseError(err), null);
+        return;
       }
-      else {
-        db = _db;
-        databaseHandler = new DatabaseHandler(db.collection(collectionName));
-        done(null, true);
-      }
+      db = _db;
+      databaseHandler = new DatabaseHandler(db.collection(collectionName));
+      done(null, true);
     });
   };
 
@@ -54,51 +49,27 @@ var RequestHandler = function (collectionName) {
 
   this.save = function(request, response) {
     var msg = paramHandler(request, response, 'msg');
-    if (msg === undefined) {
-      return;
-    }
-    else {
-      databaseHandler.save(msg, function(err, msgDbObj) {
-        if (err) {
-          errorHandler(response, err);
-        }
-        else {
-          response.writeHead(200, {'Content-Type': 'text/html'});
-          response.end();
-        }
-      });
-    }
-  }
+    if (msg === undefined) return;
+    databaseHandler.save(msg, function(err, msgDbObj) {
+      if (err) errorHandler(response, err);
+      else response.sendStatus(200);
+    });
+  };
 
   this.flag = function(request, response) {
     var id = paramHandler(request, response, 'ID');
 
-    if (id === undefined) {
-      return;
-    }
-    else {
-      databaseHandler.flag(id, function(err, successful) {
-        if (err) {
-          errorHandler(response, err);
-        }
-        else {
-          response.writeHead(200, {'Content-Type': 'text/html'});
-          response.end();
-        }
-      });
-    }
-  }
+    if (id === undefined) return;
+    databaseHandler.flag(id, function(err, successful) {
+      if (err) errorHandler(response, err);
+      else response.sendStatus(200);
+    });
+  };
 
   this.getall = function(request, response) {
     var messages = databaseHandler.getall(function(err, result) {
-      if (err) {
-        errorHandler(response, err);
-      }
-      else {
-        response.writeHead(200, {'Content-Type': 'application/json'});
-        response.write(JSON.stringify(result));
-        response.end();
-      }
+      if (err) errorHandler(response, err);
+      else response.status(200).json(result);
     });
   }
 };

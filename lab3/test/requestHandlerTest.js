@@ -94,7 +94,7 @@ describe('RequestHandler', function() {
           response.statusCode.should.equal(200);
 
           collection.find().toArray(function(err, docs) {
-            docs[0]['_id'].toString().should.equal(JSON.parse(data)[0]['id']);
+            docs[0]['_id'].toString().should.equal(JSON.parse(data)['id']);
             done();
           });
 

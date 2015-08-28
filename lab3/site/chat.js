@@ -43,7 +43,6 @@ var setupSendButton = function() {
       var ajaxOptions = createBasicAjaxOptions();
       ajaxOptions['url'] += ("/save?msg=" + tAC);
       ajaxOptions['success'] = function(data) {
-        data = data[0];
         $("#messages").prepend(constructMessage(data['id'], tAC));
         $("#msgInput").val("");
         $("#warning").toggle(false);

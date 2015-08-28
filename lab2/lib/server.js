@@ -35,7 +35,7 @@ var Server = function(collectionName) {
   })
 
   app.post('/', function(req, res) {
-    res.sendStatus(405)
+    res.sendStatus(405);
   })
 
   // Start accepting connections and connect to database
