@@ -1,2 +1,2 @@
 # TDP013
-Labs and projects for TDP013, version 2014
+Labs and projects for TDP013

@@ -6,7 +6,7 @@ require 'test/unit'
 class ChatTest < Test::Unit::TestCase
   def setup
     @driver = Selenium::WebDriver.for :firefox
-    @driver.get 'http://192.168.1.87/~vakz/TDP013_2014/lab1/'
+    @driver.get 'http://www-und.ida.liu.se/~frejo105/TDP013/lab1/'
   end
 
   def test_simple_send
