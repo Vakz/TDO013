@@ -12,10 +12,6 @@ $(document).ready(function() {
   });
 });
 
-var insertMessage = function(message) {
-  
-}
-
 var constructMessage = function(text)
 {
   var container = $("<div/>", {class: "messageContainer unread"});
