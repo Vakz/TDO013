@@ -6,7 +6,23 @@ require 'test/unit'
 class ChatTest < Test::Unit::TestCase
   def setup
     @driver = Selenium::WebDriver.for :firefox
-    @driver.get 'http://192.168.1.87/~vakz/TDP013_2014/lab1/'
+    @driver.get 'http://www-und.ida.liu.se/~frejo105'
+  end
+
+  def test_send_empty
+    assert_equal(@driver.find_element(:id, 'msgInput').text, '')
+    warning = @driver.find_element(:id, 'warning')
+
+    @driver.find_element(:id, 'sendButton').click
+    assert_equal(warning.style('display'), 'block')
+
+  end
+
+  def test_send_too_long
+    warning = @driver.find_element(:id, 'warning')
+    @driver.find_element(:id, 'msgInput').send_keys('a'*141)
+    @driver.find_element(:id, 'sendButton').click
+    assert_equal(warning.style('display'), 'block')
   end
 
   def test_simple_send
@@ -18,6 +34,24 @@ class ChatTest < Test::Unit::TestCase
           .find_element(:class, 'messageText')
 
     assert_equal(message, msg.text)
+  end
+
+  def test_send_error_then_correct
+    assert_equal(@driver.find_element(:id, 'msgInput').text, '')
+    warning = @driver.find_element(:id, 'warning')
+
+    button = @driver.find_element(:id, 'sendButton')
+
+    button.click
+    assert_equal(warning.style('display'), 'block')
+    @driver.find_element(:id, 'msgInput').send_keys('a')
+    button.click
+    assert_equal(warning.style('display'), 'none')
+
+    msg = @driver.find_element(:class, 'messageContainer')
+          .find_element(:class, 'messageText').text
+
+    assert_equal('a', msg)
   end
 
   def test_set_read
