@@ -9,13 +9,15 @@ var Server = function(collectionName) {
 
   var app = (require('express'))();
 
-  app.all('*', function(req, res, next) {
+  var setCorsHeaders = function(req, res, next) {
     res.set({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
     });
     next();
-  })
+  }
+
+  app.use(setCorsHeaders);
 
   app.get('/flag', requestHandler.flag);
 
@@ -27,7 +29,7 @@ var Server = function(collectionName) {
     res.sendStatus(404);
   })
 
-  app.post('/', function(req, res) {
+  app.post('*', function(req, res) {
     res.sendStatus(405);
   })
 

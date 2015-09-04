@@ -1,6 +1,6 @@
 var createBasicAjaxOptions = function() {
   return {
-    "url": "http://vakz.se:8888",
+    "url": "http://192.168.1.87:8888",
     type: "GET",
   };
 }
@@ -38,8 +38,9 @@ var constructMessage = function(id, text)
 var setupSendButton = function() {
   $("#sendButton").click(function() {
     var tAC = $("#msgInput").val().trim();
-    if (tAC.length > 0 && tAC.length <= 140) {
-
+    var pattern = /.{1,140}/
+    //if (tAC.length > 0 && tAC.length <= 140) {
+    if (pattern.test(tAC)) {
       var ajaxOptions = createBasicAjaxOptions();
       ajaxOptions['url'] += ("/save?msg=" + tAC);
       ajaxOptions['success'] = function(data) {

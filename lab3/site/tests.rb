@@ -25,6 +25,13 @@ class ChatTest < Test::Unit::TestCase
     assert_equal(warning.style('display'), 'block')
   end
 
+  def test_too_long_spaces
+    warning = @driver.find_element(:id, 'warning')
+    @driver.find_element(:id, 'msgInput').send_keys(' '*141)
+    @driver.find_element(:id, 'sendButton').click
+    assert_equal(warning.style('display'), 'block')
+  end
+
   def test_simple_send
     message = 'a simple message'
     @driver.find_element(:id, 'msgInput').send_keys(message)
