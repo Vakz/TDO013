@@ -59,7 +59,7 @@ class ChatTest < Test::Unit::TestCase
     @driver.find_element(:id, 'sendButton').click
 
     checkbox = @driver.find_element(:css, '[type=checkbox]')
-    msg = checkbox.find_element(:xpath, '..')
+    msg = checkbox.find_element(:xpath, '..').find_element(:xpath, '..')
 
     # Make sure setting read works
     checkbox.click
