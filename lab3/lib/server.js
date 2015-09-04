@@ -6,17 +6,8 @@ var Server = function(collectionName) {
 
   collectionName = collectionName || 'chat';
   var requestHandler = new RequestHandler(collectionName);
-  var outer = this;
-  var connections = [];
 
   var app = (require('express'))();
-
-  app.on('connection', function(socket) {
-    connections[connections.length] = socket;
-    socket.on('close', function() {
-      connections.splice(connections.indexOf(socket), 1);
-    });
-  });
 
   app.all('*', function(req, res, next) {
     res.set({
@@ -26,17 +17,11 @@ var Server = function(collectionName) {
     next();
   })
 
-  app.get('/flag', function(req, res) {
-    requestHandler.flag(req, res);
-  });
+  app.get('/flag', requestHandler.flag);
 
-  app.get('/save', function(req, res) {
-    requestHandler.save(req, res);
-  });
+  app.get('/save', requestHandler.save);
 
-  app.get('/getall', function(req, res) {
-    requestHandler.getall(req, res);
-  })
+  app.get('/getall', requestHandler.getall);
 
   app.get('*', function(req, res) {
     res.sendStatus(404);
@@ -54,9 +39,6 @@ var Server = function(collectionName) {
 
   // Stop all incoming connections and close db
   this.stop = function() {
-    connections.forEach(function(socket) {
-      socket.destroy();
-    });
     requestHandler.closeDb();
   }
 }

@@ -5,50 +5,53 @@ var ObjectID = require('mongodb').ObjectID;
 var DatabaseHandler = function(collection){
   var collection = collection;
 
-  this.save = function(msg, done) {
-    done = done || function() {};
+  this.save = function(msg, callback) {
     msg = msg.trim();
     if (typeof msg !== "string" || msg.length == 0 || msg.length > 140)
     {
-      done(new ArgumentError("Invalid message"), false);
+      callback && callback(new ArgumentError("Invalid message"), false);
       return;
     }
     collection.insertOne({'message': msg, 'flag': false}, function(err, r) {
-      if (err) done(new DatabaseError(err), false);
-      else done(null, r.ops[0]);
+      if (callback) {
+        if (err) callback(new DatabaseError(err), false);
+        else callback(null, r.ops[0]);
+      }
     });
   };
 
-  this.flag = function(msgId, done) {
-    done = done || function() {};
+  this.flag = function(msgId, callback) {
     if (!ObjectID.isValid(msgId)) {
-      done(new ArgumentError("Invalid id"), false);
+      callback(new ArgumentError("Invalid id"), false);
       return;
     }
     collection.updateOne({_id: new ObjectID(msgId)}, {$set: {'flag': true}}
       , function(err, r) {
-        if (err) {
-          done(new DatabaseError(err), false);
-        }
-        else if (r.result['nModified'] == 0) {
-           done(new ArgumentError("No message with id " + msgId), false);
-        }
-        else {
-          done(null, true);
+        if (callback) {
+          if (err) {
+            callback(new DatabaseError(err), false);
+          }
+          else if (r.result['nModified'] == 0) {
+             callback(new ArgumentError("No message with id " + msgId), false);
+          }
+          else {
+            callback(null, true);
+          }
         }
     });
   };
 
-  this.getall = function(done) {
-    done = done || function() {};
+  this.getall = function(callback) {
 
     collection.find().toArray(function(err, result) {
       result.map(function(doc) {
         doc['id'] = doc['_id'].toString();
         delete doc._id;
       });
-      if(err) done(new DatabaseError(err), null)
-      else done(null, result);
+      if (callback) {
+        if(err) callback(new DatabaseError(err), null)
+        else callback(null, result);
+      }
     });
   };
 };
