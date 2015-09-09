@@ -31,7 +31,7 @@ var DatabaseHandler = function(collection){
           if (err) {
             callback(new DatabaseError(err), false);
           }
-          else if (r.result['nModified'] == 0) {
+          else if (r.result['n'] == 0) {
              callback(new ArgumentError("No message with id " + msgId), false);
           }
           else {
