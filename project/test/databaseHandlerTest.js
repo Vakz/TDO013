@@ -17,13 +17,13 @@ describe('DatabaseHandler', function() {
     db.collection(collection).count(function(err, count) {
       count.should.equal(0);
       done();
-    })
+    });
   };
 
   before(function(done) {
     var getDb = function(callback) {
-      mongodb.MongoClient.connect(config.get('database:address') + config.get('database:db')
-      , function(err, _db) {
+      mongodb.MongoClient.connect(config.get('database:address') + config.get('database:db'),
+      function(err, _db) {
         if (err) throw (err);
         db = _db;
         callback();
@@ -31,7 +31,58 @@ describe('DatabaseHandler', function() {
     );
   };
 
-    async.parallel([getDb, (callback) => dbHandler.connect(() => callback())], done)
+    async.parallel([getDb, (callback) => dbHandler.connect(() => callback())], done);
+  });
+
+  describe("General database functions", function() {
+    describe("Attempt to open db when already open", function() {
+      it('should return a DatabaseError', function(done) {
+        dbHandler.connect(function(err, res) {
+          err.should.be.instanceOf(errors.DatabaseError);
+          done();
+        });
+      });
+    });
+
+    describe("Close then reopen database", function() {
+      it('should return true', function(done) {
+        dbHandler.close();
+        dbHandler.connect(function(err, res) {
+          res.should.be.true();
+          done();
+        });
+      });
+    });
+
+    describe("Attempt to make query when db is closed", function() {
+      var queryFunc = function(callback) {
+        dbHandler.getUser({username: 'uname'}, function(err, res) {
+          err.should.be.instanceOf(errors.DatabaseError);
+          callback();
+        });
+      };
+
+      it('should return a DatabaseError', function(done) {
+        async.series([(callback) => dbHandler.close(callback),
+          (callback) => queryFunc(callback)], done);
+      });
+
+      after(done => dbHandler.connect(done));
+    });
+
+    describe("Attempt to close non-open db", function() {
+
+      before((done) => dbHandler.close(done));
+
+      it('should return a DatabaseError', function(done) {
+        dbHandler.close(function(err, r) {
+          err.should.be.instanceOf(errors.DatabaseError);
+          done();
+        });
+      });
+
+      after((done) => dbHandler.connect(done));
+    });
   });
 
   describe('registerUser', function() {
@@ -81,9 +132,9 @@ describe('DatabaseHandler', function() {
         dbHandler.registerUser({username:'username', salt:'salt', password:'pw', extra:'aaa'}, function(err, res) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
-        })
-      })
-    })
+        });
+      });
+    });
   });
 
   describe("getUser", function() {
@@ -104,7 +155,7 @@ describe('DatabaseHandler', function() {
           (callback) => dbHandler.getUser({_id: new mongodb.ObjectId(id)},
             function(err, res) { res._id.toString().should.equal(id); callback(); }),
         ], done);
-      })
+      });
     });
 
     describe('Get non-existant user', function() {
@@ -122,9 +173,11 @@ describe('DatabaseHandler', function() {
           (callback) => dbHandler.getUser({},
             function(err, res) { err.should.be.instanceOf(errors.ArgumentError); callback(); }),
           (callback) => dbHandler.getUser({username: ' '},
-            function(err, res) { err.should.be.instanceOf(errors.ArgumentError); callback()})
+            function(err, res) { err.should.be.instanceOf(errors.ArgumentError); callback(); })
         ], done);
-      })
-    })
+      });
+    });
   });
+
+  after(() => db.close());
 });
