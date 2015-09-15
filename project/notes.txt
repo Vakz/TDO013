@@ -1,0 +1,9 @@
+Required database functionality:
+--------------------------------
+-Register new user
+-Get user info (simply fetch all direct info, relevant or not). Filter what is relevant outside database handler. Fetch by either id or username.
+-Search for user based on multiple parameters (accept an object)
+-Get all friends related to a userId
+-Get all messages related to a userId
+-Submit new message on friend page. Requires sender id, reciever id, message text and date
+-Keep track of sessions. Check whether a user has an active session based on sessionid. Remove session when logging out.
