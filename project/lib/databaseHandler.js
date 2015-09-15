@@ -5,6 +5,9 @@ var mongodb = require('mongodb');
 var config = require('./config');
 var ObjectID = mongodb.ObjectID;
 
+var db;
+var connected;
+var collections;
 
 var getCollection = function(collection) {
   if (!collections.hasOwnProperty(collection)) {
@@ -12,9 +15,7 @@ var getCollection = function(collection) {
   }
   return collections[collection];
 };
-var db;
-var connected;
-var collections_test;
+
 
 /*
  * Deletes empty parameters. If a _id parameter is present, converts it
