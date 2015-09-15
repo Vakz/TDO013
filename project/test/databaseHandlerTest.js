@@ -21,6 +21,14 @@ describe('DatabaseHandler', function() {
   };
 
   before(function(done) {
+    // Make sure tests are run on test db
+    var pattern = /_test$/;
+
+    if (!pattern.test(config.get('database:db'))) {
+      console.error("DB used for testing should end with '_test'");
+      process.exit(1);
+    }
+
     var getDb = function(callback) {
       mongodb.MongoClient.connect(config.get('database:address') + config.get('database:db'),
       function(err, _db) {

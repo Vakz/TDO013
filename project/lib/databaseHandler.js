@@ -85,7 +85,6 @@ var DatabaseHandler = function() {
     authCollection.find({username: params.username}).toArray(function(err, docs) {
       /* istanbul ignore if */
       if (err) {
-        /* istanbul ignore else */
         if(callback) callback(err);
         return;
       }
@@ -101,7 +100,6 @@ var DatabaseHandler = function() {
             if (callback) {
               /* istanbul ignore if */
               if (err) {
-                /* istanbul ignore else */
                 if (callback) callback(err, null);
               }
               else {
@@ -116,7 +114,6 @@ var DatabaseHandler = function() {
   };
 
   this.getUser = function(params, callback) {
-
     if(!connected) {
       /* istanbul ignore else */
       if (callback) callback(new errors.DatabaseError("Not connected to database"), null);
@@ -132,7 +129,6 @@ var DatabaseHandler = function() {
     db.collection(config.get('database:collections:auth')).findOne(params, function(err, res) {
       /* istanbul ignore if */
       if (err) {
-        /* istanbul ignore else */
         if (callback) callback(err, null);
         return;
       }
