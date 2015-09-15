@@ -20,7 +20,7 @@ var RequestHandler = function (collectionName) {
 
   // Gets a parameter. If parameter does not exist, writes 400 to client.
   var paramHandler = function(request, response, param) {
-    var paramData = url.parse(request.url, true).query[param];
+    var paramData = request.query[param];
     if (paramData === undefined) {
       errorHandler(response, new errors.ArgumentError(
         require('util').format('No parameter "%s"', param)
@@ -30,16 +30,15 @@ var RequestHandler = function (collectionName) {
   }
 
   // Connect to the database
-  this.connect = function(done) {
-    done = done || function() {};
+  this.connect = function(callback) {
     require('mongodb').MongoClient.connect(mongoAdress, function(err, _db) {
       if (err) {
-        done(new errors.DatabaseError(err), null);
+        if (callback) callback(new errors.DatabaseError(err), null);
         return;
       }
       db = _db;
       databaseHandler = new DatabaseHandler(db.collection(collectionName));
-      done(null, true);
+      if(callback) callback(null, true);
     });
   };
 

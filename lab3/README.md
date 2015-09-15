@@ -1,5 +1,5 @@
 # Lab 3: jQuery, AJAX & CORS
-Requires mongodb driver
+Requires mongodb and express
 
 To run tests, requires:
  - mocha

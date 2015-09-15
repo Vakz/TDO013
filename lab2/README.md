@@ -1,9 +1,10 @@
 # Lab 2: Node.js, Mocha & MongoDB
 
-Requires mongodb driver
+Depends on:
+  express
+  mongodb
 
 To run tests, requires:
- - mocha
  - should
  - superagent
  - node-mocks-http

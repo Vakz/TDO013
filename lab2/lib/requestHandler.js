@@ -30,16 +30,15 @@ var RequestHandler = function (collectionName) {
   }
 
   // Connect to the database
-  this.connect = function(done) {
-    done = done || function() {};
+  this.connect = function(callback) {
     require('mongodb').MongoClient.connect(mongoAdress, function(err, _db) {
       if (err) {
-        done(new errors.DatabaseError(err), null);
+        if (callback) callback(new errors.DatabaseError(err), null);
         return;
       }
       db = _db;
       databaseHandler = new DatabaseHandler(db.collection(collectionName));
-      done(null, true);
+      if (callback) callback(null, true);
     });
   };
 

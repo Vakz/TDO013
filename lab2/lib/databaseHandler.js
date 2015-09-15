@@ -27,11 +27,12 @@ var DatabaseHandler = function(collection){
     }
     collection.updateOne({_id: new ObjectID(msgId)}, {$set: {'flag': true}}
       , function(err, r) {
+        //console.log(r.result)
         if (callback) {
           if (err) {
             callback(new DatabaseError(err), false);
           }
-          else if (r.result['nModified'] == 0) {
+          else if (r.result['n'] == 0) {
              callback(new ArgumentError("No message with id " + msgId), false);
           }
           else {
