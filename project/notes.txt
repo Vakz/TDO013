@@ -1,7 +1,12 @@
 Required database functionality:
 --------------------------------
+Done
 -Register new user
 -Get user info (simply fetch all direct info, relevant or not). Filter what is relevant outside database handler.
+
+TODO
+----
+-Update user token
 -Search for user based on multiple parameters (accept an object)
 -Get all friends related to a userId
 -Get all messages related to a userId

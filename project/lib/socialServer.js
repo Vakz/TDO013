@@ -1,18 +1,30 @@
 "use strict";
 
 var express = require('express');
-var errors = require('./errors')
-var DatabaseHandler = require('./databaseHandler');
+var errors = require('./errors');
 var config = require('./config');
+var clientSessions = require('client-sessions');
+var UserSecurity = require('./userSecurity');
 
-var SocialServer = function() {
+var SocialServer = function(){
+
   var app = express();
-  var dbHandler = new DatabaseHandler();
-  app.use(express.static('static'));
 
-  app.get('/', function(req, res) {
+  var sessionsSettings = UserSecurity.getSessionOptions();
 
-  });
+  setupMiddleware();
+  setupRoutes();
+
+  function setupMiddleware() {
+    app.use(express.static('static'));
+    app.use(clientSessions(sessionsSettings));
+  }
+
+  function setupRoutes() {
+    app.get('/asd', function(req, res) {
+      res.send("No cookie");
+    });
+  }
 
   this.start = function() {
     if (Number.isInteger(config.get('port'))) {
@@ -24,7 +36,6 @@ var SocialServer = function() {
   };
 
   this.stop = function() {
-    dbHandler.stop();
     app.close();
   };
 };

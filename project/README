@@ -1,3 +1,10 @@
-When installing Monk,
+Sessions
+---------
+Sessions are built using client-sessions. In order to revoke all sessions from server side, a token is used in accordance to this blog post:
 
+https://hacks.mozilla.org/2012/12/using-secure-client-side-sessions-to-build-simple-and-scalable-node-js-applications-a-node-js-holiday-season-part-3/
+
+Bugs
+----
+When installing Monk,
 change: node_modules/monk/node_modules/mongodb/node_modules/bson/ext/index.js row 15 to bson = require('../browser_build/bson');

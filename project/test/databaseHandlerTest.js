@@ -9,12 +9,13 @@ var errors = require('../lib/errors');
 describe('DatabaseHandler', function() {
   var db = require('monk')(config.get('database:address') + config.get('database:db'));
   var dbHandler = new DatabaseHandler();
+  dbHandler.connect();
 
   var cleanCollection = function(done, collection) {
     db.get(collection).drop().complete(() => done());
   };
 
-  before(function() {
+  before(function(done) {
     // Make sure tests are run on test db
     var pattern = /_test$/;
 
@@ -22,14 +23,14 @@ describe('DatabaseHandler', function() {
       console.error("DB used for testing should end with '_test'");
       process.exit(1);
     }
+    done();
   });
 
   describe("General database functions", function() {
     describe("Attempt to make query when db is closed", function() {
-      before(dbHandler.close);
 
       it('should return a DatabaseError', function(done) {
-        db.close();
+        dbHandler.close();
         dbHandler.getUser({username: 'uname'}).then(null, function(err){
           err.should.be.instanceOf(errors.DatabaseError);
           done();
