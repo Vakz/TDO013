@@ -11,8 +11,9 @@
   "dependencies": {
     "async": "^1.4.2",
     "express": "^4.13.3",
-    "mongodb": "^2.0.42",
-    "nconf": "^0.7.2"
+    "monk": "^1.0.1",
+    "nconf": "^0.7.2",
+    "q": "^1.4.1"
   },
   "devDependencies": {
     "should": "^7.1.0"
