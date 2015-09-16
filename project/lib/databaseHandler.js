@@ -4,6 +4,7 @@ var errors = require('./errors');
 var config = require('./config');
 var Q = require('q');
 
+// Stored outside of the class to simulate "private"
 var db;
 var connected;
 var collections;
@@ -49,13 +50,14 @@ class DatabaseHandler {
   }
 
   registerUser(params) {
+    var requiredParams = ['username', 'salt', 'password'];
     return Q.Promise(function(resolve, reject, notify) {
       // Make sure all are set
-      if ([params.username, params.salt, params.password].some(s => !s || !s.trim())) {
-        reject(new errors.ArgumentError("Username, salt and hash must be specified"));
-      }
-      else if (Object.keys(params).length != 3) {
+      if (!Object.keys(params).every(s => requiredParams.indexOf(s) >= 0)) {
         reject(new errors.ArgumentError("Only username, salt and password should be specified"));
+      }
+      else if ([params.username, params.salt, params.password].some(s => !s || typeof s !== 'string' || !s.trim())) {
+        reject(new errors.ArgumentError("Username, salt and hash must be specified"));
       }
       else if (!connected) {
         reject(new errors.DatabaseError("Not connected to database"));
