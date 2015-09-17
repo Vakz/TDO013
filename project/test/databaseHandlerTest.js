@@ -4,15 +4,20 @@ require('should');
 
 var config = require('../lib/config');
 var DatabaseHandler = require('../lib/databaseHandler');
+var UserSecurity = require('../lib/userSecurity');
 var errors = require('../lib/errors');
+var mongodb = require('mongodb');
 
 describe('DatabaseHandler', function() {
-  var db = require('monk')(config.get('database:address') + config.get('database:db'));
+  var db = null;
   var dbHandler = new DatabaseHandler();
+  var tokenLength = config.get("security:sessions:tokenLength");
+  var tokenPattern = new RegExp('^[\\w\\d]{' + tokenLength + '}$');
   dbHandler.connect();
 
   var cleanCollection = function(done, collection) {
-    db.get(collection).drop().complete(() => done());
+    db.collection(collection).removeMany();
+    done();
   };
 
   before(function(done) {
@@ -23,7 +28,11 @@ describe('DatabaseHandler', function() {
       console.error("DB used for testing should end with '_test'");
       process.exit(1);
     }
-    done();
+    mongodb.MongoClient.connect(config.get('database:address') + config.get('database:db'), function(err, _db) {
+      db = _db;
+      dbHandler.connect().then(() => done());
+    })
+
   });
 
   describe("General database functions", function() {
@@ -47,9 +56,11 @@ describe('DatabaseHandler', function() {
       describe('Create valid user', function() {
         it('should return a newly registered user with id', function(done) {
           dbHandler.registerUser({username:'name', salt:'salt', password:'pw'}).then(function(res) {
+            console.log(res);
             res.username.should.equal('name');
             res.salt.should.equal('salt');
             res.password.should.equal('pw');
+            tokenPattern.test(res.token).should.be.true();
             done();
           }).done();
         });

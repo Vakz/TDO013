@@ -4,7 +4,7 @@ nconf.argv().env();
 
 nconf.defaults({
   database: {
-    address: 'localhost/',
+    address: 'mongodb://localhost/',
     db: 'social_website',
     collections: {
       auth: 'users'
