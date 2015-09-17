@@ -1,3 +1,7 @@
+mongodb
+-------
+IDs are generated using ObjectID, but are stored as strings, simply because it's easier than keeping track and making sure to cast it back and forth. I feel that it's worth the tradeoff of 12 extra bytes to store.
+
 Sessions
 ---------
 Sessions are built using client-sessions. In order to revoke all sessions from server side, a token is used in accordance to this blog post:
@@ -6,5 +10,4 @@ https://hacks.mozilla.org/2012/12/using-secure-client-side-sessions-to-build-sim
 
 Bugs
 ----
-When installing Monk,
-change: node_modules/monk/node_modules/mongodb/node_modules/bson/ext/index.js row 15 to bson = require('../browser_build/bson');
+When installing Mongodb, libkrb5-dev is required

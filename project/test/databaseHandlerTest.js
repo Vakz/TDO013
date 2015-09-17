@@ -20,6 +20,8 @@ describe('DatabaseHandler', function() {
     done();
   };
 
+
+
   before(function(done) {
     // Make sure tests are run on test db
     var pattern = /_test$/;
@@ -28,10 +30,12 @@ describe('DatabaseHandler', function() {
       console.error("DB used for testing should end with '_test'");
       process.exit(1);
     }
-    mongodb.MongoClient.connect(config.get('database:address') + config.get('database:db'), function(err, _db) {
-      db = _db;
-      dbHandler.connect().then(() => done());
-    })
+    mongodb.MongoClient.connect(
+      config.get('database:address') + config.get('database:db'),
+      function(err, _db) {
+        db = _db;
+        dbHandler.connect().then(() => done());
+    });
 
   });
 
@@ -40,7 +44,7 @@ describe('DatabaseHandler', function() {
 
       it('should return a DatabaseError', function(done) {
         dbHandler.close();
-        dbHandler.getUser({username: 'uname'}).then(null, function(err){
+        dbHandler.getUser({username: 'uname'}).catch(function(err){
           err.should.be.instanceOf(errors.DatabaseError);
           done();
         }).done() ;
@@ -56,7 +60,6 @@ describe('DatabaseHandler', function() {
       describe('Create valid user', function() {
         it('should return a newly registered user with id', function(done) {
           dbHandler.registerUser({username:'name', salt:'salt', password:'pw'}).then(function(res) {
-            console.log(res);
             res.username.should.equal('name');
             res.salt.should.equal('salt');
             res.password.should.equal('pw');
@@ -74,7 +77,7 @@ describe('DatabaseHandler', function() {
       });
 
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({'username': username, salt: 'othersalt', password: 'otherpw'}).then(null, function(err) {
+        dbHandler.registerUser({'username': username, salt: 'othersalt', password: 'otherpw'}).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -83,7 +86,7 @@ describe('DatabaseHandler', function() {
 
     describe('Attempt to create user without specifying all parameters', function() {
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({username:'', salt:'salt', password:'pw'}).then(null, function(err) {
+        dbHandler.registerUser({username:'', salt:'salt', password:'pw'}).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -92,7 +95,7 @@ describe('DatabaseHandler', function() {
 
     describe('Attempt to add extra, non-valid, parameters', function() {
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({username:'username', salt:'salt', password:'pw', extra:'aaa'}).then(null, function(err) {
+        dbHandler.registerUser({username:'username', salt:'salt', password:'pw', extra:'aaa'}).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -116,7 +119,7 @@ describe('DatabaseHandler', function() {
       it('should return the correct user', function(done) {
         dbHandler.getUser({username: 'uname'})
           .then(function(res) {
-            res._id.equals(id).should.be.true();
+            res._id.should.equal(id);
             return dbHandler.getUser({_id: id});})
           .then(function(res) {
             res.username.should.equal('uname');
@@ -140,10 +143,57 @@ describe('DatabaseHandler', function() {
         dbHandler.getUser({}).then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           return dbHandler.getUser({username: ' '});
-        }).then(null, function(err) {
+        }).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
+      });
+    });
+  });
+
+  describe("updateToken", function() {
+    describe('Update token of existing user', function() {
+      var id = null;
+      var token = null;
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      before('Create a user to update', function(done) {
+        dbHandler.registerUser({username: 'uname', salt: 'salt', password: 'pw'})
+      .then(
+        function(res) {
+          id = res._id;
+          token = res.token;
+          done();
+        });
+      });
+
+      it('should return new token', function(done) {
+        dbHandler.updateToken(id).then(function(res) {
+          tokenPattern.test(res).should.be.true();
+          res.should.not.equal(token);
+          done();
+        }).done();
+      });
+    });
+
+    describe('Attempt to update non-existant user', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.updateToken((new mongodb.ObjectId()).toString())
+        .catch(function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        }).done();
+      });
+    });
+
+    describe('Attempt to update invalid id', function() {
+      it('should return ArgumentError', function(done) {
+          dbHandler.updateToken("a")
+          .catch(function(err) {
+            err.should.be.instanceOf(errors.ArgumentError);
+            done();
+          }).done();
       });
     });
   });

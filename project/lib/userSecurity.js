@@ -4,7 +4,7 @@ var config = require('./config');
 var crypto = require('crypto');
 var errors = require('./errors');
 var Q = require('q');
-var UserSecurity = function() {
+var UserSecurity = {
 
 };
 
