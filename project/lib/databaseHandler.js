@@ -108,21 +108,18 @@ var DatabaseHandler = function() {
 
   this.getUser = function(params) {
     return Q.Promise(function(resolve, reject, notify) {
-      if(!connected) {
-        reject(new errors.DatabaseError("Not connected to database"));
-      }
-      else
-      {
-        // Delete specified but empty parameters to ensure at least one is valid
+      if (!connected) reject(new errors.DatabaseError("Not connected to database"));
+      Q.Promise(function(resolve) {
         prepareParams(params);
-        if (Object.keys(params).length === 0) {
-          reject(new errors.ArgumentError("Must specficy at least one parameter"));
-          return;
-        }
-
-        var authCollection = getCollection(config.get('database:collections:auth'));
-        authCollection.findOne(params).then(resolve, reject);
-      }
+        resolve();
+      })
+      .then(function() {
+        if (Object.keys(params).length === 0)
+          throw new errors.ArgumentError("Must specficy at least one parameter");
+      })
+      .then(() => getCollection(config.get('database:collections:auth')).findOne(params))
+      .then(resolve)
+      .catch(reject);
     });
   };
 

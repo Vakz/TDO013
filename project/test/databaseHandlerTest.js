@@ -11,8 +11,8 @@ var mongodb = require('mongodb');
 describe('DatabaseHandler', function() {
   var db = null;
   var dbHandler = new DatabaseHandler();
-  var tokenLength = config.get("security:sessions:tokenLength");
-  var tokenPattern = new RegExp('^[./$\\w\\d]{' + tokenLength + '}$');
+  var length = config.get("security:sessions:tokenLength");
+  var tokenPattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
   dbHandler.connect();
 
   var cleanCollection = function(done, collection) {

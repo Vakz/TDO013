@@ -4,6 +4,7 @@ var config = require('./config');
 var bcrypt = require('bcrypt');
 var errors = require('./errors');
 var Q = require('q');
+var RandExp = require('randexp');
 var UserSecurity = {
 
 };
@@ -20,11 +21,9 @@ UserSecurity.getSessionOptions = function() {
 UserSecurity.generateToken = function(length) {
   return Q.Promise(function(resolve, reject, notify) {
     if (length < 1) reject(new errors.ArgumentError("Token length must be at least 1"));
-    else if (length > 20) reject(new errors.ArgumentError("Cannot generate token longer than 20 characters"));
     else {
-      var promise = Q.ninvoke(bcrypt, "genSalt");
-      // This will in fact generate a string longer than length, so cut off the rest
-      promise.then((salt) => resolve(salt.slice(salt.length - length)), reject);
+      var pattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
+      resolve(new RandExp(pattern).gen());
     }
   });
 };
@@ -47,6 +46,12 @@ UserSecurity.verifyHash = function(str, hash) {
       .then(resolve, reject);
     }
   });
+};
+
+UserSecurity.isValidUsername = function(username) {
+  if (username.length < 1 || username.length > config.get('users:usernameMaxLength')) return false;
+  var pattern = new RegExp("^[" + config.get('users:acceptableCharacters') + "]+$");
+  return pattern.test(username);
 };
 
 module.exports = UserSecurity;

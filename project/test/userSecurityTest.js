@@ -4,10 +4,11 @@ var config = require('../lib/config');
 var errors = require('../lib/errors');
 var UserSecurity = require('../lib/userSecurity');
 var bcrypt = require('bcrypt');
+var RandExp = require('randexp');
 
 describe('UserSecurity', function() {
 
-  var getPattern = (length) => new RegExp('^[./$\\w\\d]{' + length + '}$');
+  var getPattern = (length) => new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
 
   // Really just for code coverage
   describe('getSessionOptions', function() {
@@ -34,16 +35,6 @@ describe('UserSecurity', function() {
       it('should return a valid string of length 10', function(done) {
         UserSecurity.generateToken(10).then(function(val) {
           getPattern(10).test(val).should.be.true();
-          done();
-        })
-        .done();
-      });
-    });
-
-    describe('Attempt to generate too long token', function() {
-      it('should return an ArgumentError', function(done) {
-        UserSecurity.generateToken(21).then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError);
           done();
         })
         .done();
@@ -86,6 +77,27 @@ describe('UserSecurity', function() {
       it('should return ArgumentError', function(done) {
         UserSecurity.verifyHash("")
         .catch((err) => { err.should.be.instanceOf(errors.ArgumentError); done(); });
+      });
+    });
+  });
+
+
+  describe('isValidUsername', function() {
+    var usernameLength = config.get('users:usernameMaxLength');
+    var pattern = new RegExp("^[" + config.get('users:acceptableCharacters') + "]{" + usernameLength + "}$");
+
+    describe('Check valid username', function() {
+      it('should return true', function(done) {
+        var uname = (new RandExp(pattern).gen());
+        UserSecurity.isValidUsername(uname).should.be.true();
+        done();
+      });
+    });
+
+    describe('Check empty username', function() {
+      it('should return false', function(done) {
+        UserSecurity.isValidUsername("").should.be.false();
+        done();
       });
     });
   });

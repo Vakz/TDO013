@@ -14,6 +14,7 @@ nconf.defaults({
     sessions:{
       key: "vC1ux6jiN7bjZ2M26EXF8eXEjH7neI",
       tokenLength: 20,
+      tokenChars: "\\x20-\\x7F", // Any printable ASCII
       sessionDuration: 1000 * 60 * 60 * 24,
       activeDuration: 1000 * 60 * 60 * 24
     },
@@ -22,7 +23,14 @@ nconf.defaults({
       saltRounds: 4
     }
   },
-  port: 8888
+  server: {
+    port: 8888
+  },
+  users: {
+    acceptableCharacters: "\\w\\d._",
+    usernameMaxLength: 10
+  }
+
 });
 
 module.exports = nconf;
