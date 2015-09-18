@@ -21,7 +21,7 @@ describe('UserSecurity', function() {
 
   describe('generateToken', function() {
     describe('Attempt to create token with zero length', function() {
-      it('should return an error', function(done) {
+      it('should return an ArgumentError', function(done) {
         UserSecurity.generateToken(0).then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
@@ -34,6 +34,16 @@ describe('UserSecurity', function() {
       it('should return a valid string of length 10', function(done) {
         UserSecurity.generateToken(10).then(function(val) {
           getPattern(10).test(val).should.be.true();
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Attempt to generate too long token', function() {
+      it('should return an ArgumentError', function(done) {
+        UserSecurity.generateToken(21).then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
           done();
         })
         .done();
@@ -64,7 +74,7 @@ describe('UserSecurity', function() {
 
   describe('verifyHash', function() {
     describe('Verify a hashed password', function() {
-      it('should return true', function() {
+      it('should return true', function(done) {
         var pw = "decentpassword";
         UserSecurity.hash(pw)
         .then((hash) => UserSecurity.verifyHash(pw, hash))
