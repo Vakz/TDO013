@@ -10,6 +10,7 @@ var DatabaseHandler = function() {
   var db = null;
   var connected = false;
   var collections = {};
+  var scope = this; // For usage in callbacks
 
   var getCollection = function(collection) {
     if (!collections.hasOwnProperty(collection)) {
@@ -34,16 +35,15 @@ var DatabaseHandler = function() {
   var generateId = () => (new mongodb.ObjectId()).toString();
 
   var genericUpdateUser = function(id, params) {
-    var scope = this;
     return Q.promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
       if(!connected) reject(new errors.DatabaseError("Not connected to database"));
       else if (!mongodb.ObjectId.isValid(id)) reject(new errors.ArgumentError("id is invalid"));
       else {
-        getCollection(config.get('database:collections:auth')).updateOne({_id: id}, params)
+        getCollection(config.get('database:collections:auth')).updateOne({_id: id}, {$set: params})
         .then((doc) => { if (!doc.result.nModified) throw new errors.ArgumentError("No user updated"); })
         .then(() => scope.getUser({_id: id}))
-        .then((doc) => resolve(doc.token))
+        .then((doc) => resolve(doc))
         .catch(reject);
       }
     });
@@ -91,24 +91,17 @@ var DatabaseHandler = function() {
         reject(new errors.DatabaseError("Not connected to database"));
       }
       else {
-        var authCollection = getCollection(config.get('database:collections:auth'));
-        // Check if username is taken
-
-        var res = scope.getUser({username: params.username});
-
-        res.then(function(doc) {
-          if (doc) {
-            reject(new errors.ArgumentError("Username already taken"));
-          }
-          else {
-            var tokenLength = config.get('security:sessions:tokenLength');
-            UserSecurity.generateToken(tokenLength).then(function(val) {
-              params.token = val;
-              params._id = generateId();
-              authCollection.insertOne(params).then((doc) => resolve(doc.ops[0]), reject);
-            }, reject).done();
-          }
-        }, reject).done();
+        // https://gist.github.com/Vakz/77b59958973ad49785b9
+        scope.getUser({username: params.username})
+        .then(function(doc) {
+          if (doc) throw new errors.ArgumentError("Username already taken");
+        })
+        .then(() => params._id = generateId())
+        .then(() => UserSecurity.generateToken(config.get('security:sessions:tokenLength')))
+        .then((val) => params.token = val)
+        .then(() => getCollection(config.get('database:collections:auth')).insertOne(params))
+        .then((doc) => resolve(doc.ops[0]))
+        .catch(reject);
       }
     });
   };
@@ -136,21 +129,25 @@ var DatabaseHandler = function() {
   this.updateToken = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
       UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
-      .then(function(res) {
-        genericUpdateUser({$set: {token: res}})
-        .then(resolve)
-        .catch(() => reject(new errors.ArgumentError("No user with id " + id)));
-      });
+      .then((res) => genericUpdateUser(id, {token: res}))
+      .then((res) => resolve(res.token))
+      .catch(function(err) {
+        if (err instanceof errors.ArgumentError) reject(new errors.ArgumentError("No user with id " + id));
+        // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
+        else throw (err);
+      })
+      .catch(reject);
     });
   };
 
   this.updatePassword = function(id, password, resetToken) {
-    return Q.promise(function(resolve, reject, notify) {
-      if(!connected) reject(new errors.DatabaseError("Not connected to database"));
-      else if (!mongodb.ObjectId.isValid(id)) reject(new errors.ArgumentError("id is invalid"));
-      else {
-
-      }
+    return Q.Promise(function(resolve, reject, notify) {
+      Q.Promise(function(resolve, reject) {
+        if (resetToken) scope.updateToken(id).then(resolve);
+        else resolve();
+      }).then( () => genericUpdateUser(id, {'password': password}))
+      .then((res) => resolve(res))
+      .catch(reject);
     });
   };
 

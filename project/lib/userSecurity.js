@@ -1,7 +1,7 @@
 "use strict";
 
 var config = require('./config');
-var crypto = require('crypto');
+var bcrypt = require('bcrypt');
 var errors = require('./errors');
 var Q = require('q');
 var UserSecurity = {
@@ -20,9 +20,32 @@ UserSecurity.getSessionOptions = function() {
 UserSecurity.generateToken = function(length) {
   return Q.Promise(function(resolve, reject, notify) {
     if (length < 1) reject(new errors.ArgumentError("Token length must be at least 1"));
-    var promise = Q.nfcall(crypto.randomBytes, length);
-    // This will in fact generate a string longer than length, so cut off the rest
-    promise.then((bytes) => resolve(bytes.toString('hex').substring(0,length)), reject);
+    else if (length > 20) reject(new errors.ArgumentError("Cannot generate token longer than 20 characters"));
+    else {
+      var promise = Q.ninvoke(bcrypt, "genSalt");
+      // This will in fact generate a string longer than length, so cut off the rest
+      promise.then((salt) => resolve(salt.slice(salt.length - length)), reject);
+    }
+  });
+};
+
+UserSecurity.hash = function(str) {
+  return Q.Promise(function(resolve, reject, notify) {
+    if (str.length < 1) reject(new errors.ArgumentError("Cannot hash zero-length string"));
+    else {
+      Q.ninvoke(bcrypt, "hash", str, config.get('security:passwords:saltRounds'))
+      .then(resolve, reject);
+    }
+  });
+};
+
+UserSecurity.verifyHash = function(str, hash) {
+  return Q.Promise(function(resolve, reject, notify) {
+    if (str.length < 1) reject(new errors.ArgumentError("Cannot check zero-length string"));
+    else {
+      Q.ninvoke(bcrypt, "compare", str, hash)
+      .then(resolve, reject);
+    }
   });
 };
 

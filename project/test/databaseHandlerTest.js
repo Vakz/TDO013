@@ -12,15 +12,13 @@ describe('DatabaseHandler', function() {
   var db = null;
   var dbHandler = new DatabaseHandler();
   var tokenLength = config.get("security:sessions:tokenLength");
-  var tokenPattern = new RegExp('^[\\w\\d]{' + tokenLength + '}$');
+  var tokenPattern = new RegExp('^[./$\\w\\d]{' + tokenLength + '}$');
   dbHandler.connect();
 
   var cleanCollection = function(done, collection) {
     db.collection(collection).removeMany();
     done();
   };
-
-
 
   before(function(done) {
     // Make sure tests are run on test db
@@ -160,12 +158,14 @@ describe('DatabaseHandler', function() {
 
       before('Create a user to update', function(done) {
         dbHandler.registerUser({username: 'uname', salt: 'salt', password: 'pw'})
-      .then(
-        function(res) {
-          id = res._id;
-          token = res.token;
-          done();
-        });
+        .then(
+          function(res) {
+            token = res.token;
+            id = res._id;
+            tokenPattern.test(token).should.be.true();
+            done();
+          })
+        .done();
       });
 
       it('should return new token', function(done) {
@@ -194,6 +194,66 @@ describe('DatabaseHandler', function() {
             err.should.be.instanceOf(errors.ArgumentError);
             done();
           }).done();
+      });
+    });
+  });
+
+  describe("updatePassword", function() {
+    describe("Update password of existing user w/o updating token", function() {
+      var id = null;
+      var password = "adecentpassword";
+      var token = null;
+
+      before('Create user to update', function(done) {
+        dbHandler.registerUser({username:'uname', salt:'salt', 'password':password})
+        .then(function(res) {
+          id = res._id;
+          token = res.token;
+          done();
+        }).done();
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return user with new password and old token', function(done) {
+        dbHandler.updatePassword(id, 'newpassword', false)
+        .then(function(val) {
+          val.password.should.not.equal(password);
+          val.token.should.equal(token);
+          done();
+        })
+        .done();
+      });
+
+    });
+
+    describe("Update password and token of existing user", function() {
+      var id = null;
+      var password = "adecentpassword";
+      var token = null;
+
+      before(function(done) {
+        dbHandler.registerUser({username: 'usname', salt: 'salt', password: 'pw'})
+        .then(
+          function(res) {
+            token = res.token;
+            id = res._id;
+            tokenPattern.test(token).should.be.true();
+            done();
+          })
+        .done();
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return user with new password and old token', function(done) {
+        dbHandler.updatePassword(id, 'newpassword', true)
+        .then(function(val) {
+          val.password.should.not.equal(password);
+          val.token.should.not.equal(token);
+          done();
+        })
+        .done();
       });
     });
   });
