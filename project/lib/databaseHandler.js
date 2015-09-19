@@ -74,17 +74,28 @@ var DatabaseHandler = function() {
     db = null;
   };
 
+  this.findManyById = function(ids) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!Array.isArray(ids)) reject(new errors.ArgumentError("ids should be an array of valid IDs"));
+      else if (ids.some((id) => !mongodb.ObjectId.isValid(id))) reject(new errors.ArgumentError("Invalid IDs"));
+      else {
+        getCollection(config.get('database:collections:auth')).find({_id: {$in: ids} }).toArray()
+        .then((res) => resolve(res))
+        .catch(reject);
+      }
+    });
+  };
 
   this.registerUser = function(params) {
     var scope = this;
-    var requiredParams = ['username', 'salt', 'password'];
+    var requiredParams = ['username', 'password'];
     return Q.Promise(function(resolve, reject, notify) {
       // Make sure all are set
       if (!Object.keys(params).every(s => requiredParams.indexOf(s) >= 0)) {
-        reject(new errors.ArgumentError("Only username, salt and password should be specified"));
+        reject(new errors.ArgumentError("Only username and password should be specified"));
       }
-      else if ([params.username, params.salt, params.password].some(s => !s || typeof s !== 'string' || !s.trim())) {
-        reject(new errors.ArgumentError("Username, salt and hash must be specified"));
+      else if ([params.username, params.password].some(s => !s || typeof s !== 'string' || !s.trim())) {
+        reject(new errors.ArgumentError("Username and hash must be specified"));
       }
       /* istanbul ignore if */
       else if (!connected) {
@@ -125,15 +136,18 @@ var DatabaseHandler = function() {
 
   this.updateToken = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
-      UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
-      .then((res) => genericUpdateUser(id, {token: res}))
-      .then((res) => resolve(res.token))
-      .catch(function(err) {
-        if (err instanceof errors.ArgumentError) reject(new errors.ArgumentError("No user with id " + id));
-        // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
-        else throw (err);
-      })
-      .catch(reject);
+      if (typeof id !== 'string' || !mongodb.ObjectId.isValid(id)) reject(new errors.ArgumentError("Not a valid id"));
+      else {
+        UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
+        .then((res) => genericUpdateUser(id, {token: res}))
+        .then((res) => resolve(res.token))
+        .catch(function(err) {
+          if (err instanceof errors.ArgumentError) reject(new errors.ArgumentError("No user with id " + id));
+          // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
+          else throw (err);
+        })
+        .catch(reject);
+      }
     });
   };
 

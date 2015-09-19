@@ -83,12 +83,14 @@ describe('UserSecurity', function() {
 
 
   describe('isValidUsername', function() {
-    var usernameLength = config.get('users:usernameMaxLength');
-    var pattern = new RegExp("^[" + config.get('users:acceptableCharacters') + "]{" + usernameLength + "}$");
+    var maxLength = config.get('users:usernameMaxLength');
+    var makePattern = (length) => new RegExp("^[" + config.get('users:acceptableCharacters') + "]{" + length + "}$");
 
     describe('Check valid username', function() {
       it('should return true', function(done) {
-        var uname = (new RandExp(pattern).gen());
+        var pattern = makePattern(maxLength);
+        var uname = (new RandExp(pattern)).gen();
+        pattern.test(uname).should.be.true();
         UserSecurity.isValidUsername(uname).should.be.true();
         done();
       });
@@ -97,6 +99,27 @@ describe('UserSecurity', function() {
     describe('Check empty username', function() {
       it('should return false', function(done) {
         UserSecurity.isValidUsername("").should.be.false();
+        done();
+      });
+    });
+
+    describe('Check too long username', function() {
+      it('should return false', function(done) {
+        var pattern = makePattern(maxLength + 1);
+        var uname = (new RandExp(pattern)).gen();
+        makePattern(maxLength).test(uname).should.be.false();
+        UserSecurity.isValidUsername(uname).should.be.false();
+        done();
+      });
+
+    });
+
+    describe('Check invalid characters', function() {
+      it('should return false', function(done) {
+        var invalidPattern = new RegExp("^[^(" + config.get('users:acceptableCharacters') + ")]{" + maxLength + "}$");
+        var uname = (new RandExp(invalidPattern)).gen();
+        makePattern(maxLength).test(uname).should.be.false();
+        UserSecurity.isValidUsername(uname).should.be.false();
         done();
       });
     });

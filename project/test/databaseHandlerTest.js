@@ -57,9 +57,8 @@ describe('DatabaseHandler', function() {
 
       describe('Create valid user', function() {
         it('should return a newly registered user with id', function(done) {
-          dbHandler.registerUser({username:'name', salt:'salt', password:'pw'}).then(function(res) {
+          dbHandler.registerUser({username:'name', password:'pw'}).then(function(res) {
             res.username.should.equal('name');
-            res.salt.should.equal('salt');
             res.password.should.equal('pw');
             tokenPattern.test(res.token).should.be.true();
             done();
@@ -71,11 +70,13 @@ describe('DatabaseHandler', function() {
       var username = "uname";
 
       before(function(done) {
-        dbHandler.registerUser({'username': username, salt: 'salt', password: 'pw'}).then(() => done()).done();
+        dbHandler.registerUser({'username': username, password: 'pw'}).then(() => done()).done();
       });
 
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({'username': username, salt: 'othersalt', password: 'otherpw'}).catch(function(err) {
+        dbHandler.registerUser({'username': username, password: 'otherpw'}).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -84,7 +85,7 @@ describe('DatabaseHandler', function() {
 
     describe('Attempt to create user without specifying all parameters', function() {
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({username:'', salt:'salt', password:'pw'}).catch(function(err) {
+        dbHandler.registerUser({username:'', password:'pw'}).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -93,7 +94,7 @@ describe('DatabaseHandler', function() {
 
     describe('Attempt to add extra, non-valid, parameters', function() {
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({username:'username', salt:'salt', password:'pw', extra:'aaa'}).catch(function(err) {
+        dbHandler.registerUser({username:'username', password:'pw', extra:'aaa'}).catch(function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -108,7 +109,7 @@ describe('DatabaseHandler', function() {
       after(done => cleanCollection(done, config.get('database:collections:auth')));
 
       before('Create user to find', function(done) {
-        dbHandler.registerUser({username:'uname', salt:'salt', password:'pw'}).then(function(res) {
+        dbHandler.registerUser({username:'uname', password:'pw'}).then(function(res) {
           id = res._id;
           done();
         }).done();
@@ -157,7 +158,7 @@ describe('DatabaseHandler', function() {
       after((done) => cleanCollection(done, config.get('database:collections:auth')));
 
       before('Create a user to update', function(done) {
-        dbHandler.registerUser({username: 'uname', salt: 'salt', password: 'pw'})
+        dbHandler.registerUser({username: 'uname', password: 'pw'})
         .then(
           function(res) {
             token = res.token;
@@ -205,7 +206,7 @@ describe('DatabaseHandler', function() {
       var token = null;
 
       before('Create user to update', function(done) {
-        dbHandler.registerUser({username:'uname', salt:'salt', 'password':password})
+        dbHandler.registerUser({username:'uname', 'password':password})
         .then(function(res) {
           id = res._id;
           token = res.token;
@@ -224,7 +225,6 @@ describe('DatabaseHandler', function() {
         })
         .done();
       });
-
     });
 
     describe("Update password and token of existing user", function() {
@@ -233,7 +233,7 @@ describe('DatabaseHandler', function() {
       var token = null;
 
       before(function(done) {
-        dbHandler.registerUser({username: 'usname', salt: 'salt', password: 'pw'})
+        dbHandler.registerUser({username: 'uname', password: 'pw'})
         .then(
           function(res) {
             token = res.token;
@@ -254,6 +254,40 @@ describe('DatabaseHandler', function() {
           done();
         })
         .done();
+      });
+    });
+  });
+
+  describe('getManyById', function() {
+    describe('Get single user', function() {
+      var id = null;
+      var uname = 'username';
+
+      before(function(done) {
+        dbHandler.registerUser({username: uname, password: 'pw'})
+        .then((res) => id = res._id)
+        .then(() => done());
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return the correct user', function(done) {
+        dbHandler.findManyById([id])
+        .then((res) => res[0].username.should.equal(uname))
+        .then(() => done())
+        .done();
+      });
+    });
+
+    describe.skip('Get multiple users', function() {
+      var users = {};
+
+      before(function(done) {
+        dbHandler.registerUser({})
+      });
+
+      it('should return the correct two users', function(done) {
+
       });
     });
   });
