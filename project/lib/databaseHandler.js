@@ -162,6 +162,19 @@ var DatabaseHandler = function() {
     });
   };
 
+  this.searchUsers = function(searchword) {
+    return Q.Promise(function(resolve, reject, notify)
+    {
+      if (!searchword || typeof searchword !== 'string' || !searchword.trim()) {
+        reject(new errors.ArgumentError('Searchword cannot be empty'));
+      }
+      else {
+        getCollection(config.get('database:collections:auth'))
+        .find({"username": new RegExp(searchword)}).toArray()
+        .then(resolve, reject);
+      }
+    });
+  };
 };
 
 module.exports = DatabaseHandler;

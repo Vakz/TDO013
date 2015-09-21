@@ -19,6 +19,7 @@ Done
 -Get user info (simply fetch all direct info, relevant or not). Filter what is relevant outside database handler.
 -Update user token
 -Update user password
+-Find a user based on partial username
 
 TODO
 -Search for user based on multiple parameters (accept an object)

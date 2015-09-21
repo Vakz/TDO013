@@ -334,5 +334,68 @@ describe('DatabaseHandler', function() {
       });
     });
   });
+
+  describe('searchUsers', function() {
+    describe('Search for a single user', function() {
+
+      var user = null;
+
+      before(function(done) {
+        dbHandler.registerUser({username: 'usname', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => done())
+        .done();
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return the correct user', function() {
+        dbHandler.searchUsers('usname')
+        .then(function(res) {
+          res._id.should.equal(user._id);
+          res.username.should.equal(user.username);
+        })
+        .then(() => done())
+        .done();
+      });
+    });
+
+    describe('Search with keyword matching two of three users', function() {
+      var users = [];
+
+      before("Register three users", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((results) => users = results)
+        .then(() => done())
+        .done();
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return the correct two users', function(done) {
+        dbHandler.searchUsers('user')
+        .then(function(res) {
+          [users[0], users[2]].should.eql(res);
+        })
+        .then(() => done())
+        .done();
+      });
+    });
+
+    describe('Search with empty searchword', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.searchUsers('')
+        .catch(function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+        })
+        .then(() => done())
+        .done();
+      });
+    });
+  });
   after(() => db.close());
 });
