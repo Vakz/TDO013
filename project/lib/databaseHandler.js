@@ -175,6 +175,20 @@ var DatabaseHandler = function() {
       }
     });
   };
+
+  this.newMessage = function(from, to, message) {
+    return Q.Promise(function(resolve, reject, notify) {
+      scope.getManyById([from, to])
+      .then(function(res) {
+        res.some(function(doc) { if (!doc) throw new errors.ArgumentError("User not found"); });
+      })
+      .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new errors.ArgumentError('Message cannot be empty'); })
+      .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId()}; })
+      .then((params) => getCollection(config.get('database:collections:messages')).insertOne(params))
+      .then((res) => resolve(res.ops[0]))
+      .catch(reject);
+    });
+  };
 };
 
 module.exports = DatabaseHandler;

@@ -7,7 +7,8 @@ nconf.defaults({
     address: 'mongodb://localhost/',
     db: 'social_website',
     collections: {
-      auth: 'users'
+      auth: 'users',
+      messages: 'messages'
     },
   },
   security:{

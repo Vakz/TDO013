@@ -379,6 +379,7 @@ describe('DatabaseHandler', function() {
       it('should return the correct two users', function(done) {
         dbHandler.searchUsers('user')
         .then(function(res) {
+          res.length.should.equal(2);
           [users[0], users[2]].should.eql(res);
         })
         .then(() => done())
@@ -397,5 +398,81 @@ describe('DatabaseHandler', function() {
       });
     });
   });
+
+  describe('newMessage', function() {
+    describe('Insert a new valid message', function() {
+      var users = null;
+      before("Register two users", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((results) => users = results)
+        .then(() => done())
+        .done();
+      });
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:messages'));
+        done();
+      });
+
+      it('should return a valid message', function(done) {
+        dbHandler.newMessage(users[0]._id, users[1]._id, 'hello')
+        .then(function(res) {
+            res.from.should.equal(users[0]._id);
+            res.to.should.equal(users[1]._id);
+            res.message.should.equal('hello');
+            ObjectId.isValid(res._id).should.be.true();
+            done();
+        })
+        .done();
+      });
+    });
+
+    describe('Attempt to insert messages where one user does not exist', function() {
+      var id = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'usname', password: 'pw'})
+        .then((res) => id = res._id)
+        .then(() => done())
+        .done();
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return ArgumentError in both cases', function(done) {
+        dbHandler.newMessage(id, (new ObjectId()).toString(), 'hello')
+        .catch((err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(() => dbHandler.newMessage((new ObjectId()).toString(), id, 'hello'))
+        .catch((err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(() => done());
+      });
+    });
+
+    describe('Attempt to insert empty message', function() {
+      var users = null;
+      before("Register two users", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((results) => users = results)
+        .then(() => done())
+        .done();
+      });
+
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+
+      it('should return an ArgumentError', function(done) {
+        dbHandler.newMessage(users[0]._id, users[1]._id, '')
+        .catch((err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(() => done())
+        .done();
+      });
+    });
+  });
+
   after(() => db.close());
 });
