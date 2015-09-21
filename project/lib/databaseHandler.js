@@ -74,7 +74,7 @@ var DatabaseHandler = function() {
     db = null;
   };
 
-  this.findManyById = function(ids) {
+  this.getManyById = function(ids) {
     return Q.Promise(function(resolve, reject, notify) {
       if (!Array.isArray(ids)) reject(new errors.ArgumentError("ids should be an array of valid IDs"));
       else if (ids.some((id) => !mongodb.ObjectId.isValid(id))) reject(new errors.ArgumentError("Invalid IDs"));

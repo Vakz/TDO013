@@ -1,6 +1,8 @@
 process.env['database:db'] = 'social_website_test';
 
 require('should');
+var Q = require('q');
+var ObjectId = require('mongodb').ObjectId;
 
 var config = require('../lib/config');
 var DatabaseHandler = require('../lib/databaseHandler');
@@ -272,25 +274,65 @@ describe('DatabaseHandler', function() {
       after((done) => cleanCollection(done, config.get('database:collections:auth')));
 
       it('should return the correct user', function(done) {
-        dbHandler.findManyById([id])
+        dbHandler.getManyById([id])
         .then((res) => res[0].username.should.equal(uname))
         .then(() => done())
         .done();
       });
     });
 
-    describe.skip('Get multiple users', function() {
-      var users = {};
+    describe('Get multiple users', function() {
+      var users = [];
 
-      before(function(done) {
-        dbHandler.registerUser({})
+      before("Register three users", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'uname', password: 'pw'}),
+          dbHandler.registerUser({username: 'usname', password: 'pw'}),
+          dbHandler.registerUser({username: 'ulname', password: 'pw'})
+        ])
+        .then((results) => users = results)
+        .then(() => done())
+        .done();
       });
 
-      it('should return the correct two users', function(done) {
+      after((done) => cleanCollection(done, config.get('database:collections:auth')));
 
+      it('should return the correct two users', function(done) {
+        var ids = [users[0]._id, users[1]._id];
+        dbHandler.getManyById(ids)
+        .then(function(res) {
+          res.length.should.equal(2);
+          res[0]._id.should.equal(users[0]._id);
+          res[0].username.should.equal(users[0].username);
+          res[1]._id.should.equal(users[1]._id);
+          res[1].username.should.equal(users[1].username);
+        })
+        .then(() => done())
+        .done();
+      });
+    });
+
+
+    describe('Send only id', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.getManyById((new ObjectId()).toString())
+        .catch(function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      });
+    });
+
+    describe('Enter an invalid id', function() {
+      it('should return an ArgumentError', function(done) {
+        var ids = [(new ObjectId()).toString(), null];
+        dbHandler.getManyById(ids)
+        .catch(function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
       });
     });
   });
-
   after(() => db.close());
 });
