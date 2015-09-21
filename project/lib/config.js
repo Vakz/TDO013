@@ -8,7 +8,8 @@ nconf.defaults({
     db: 'social_website',
     collections: {
       auth: 'users',
-      messages: 'messages'
+      messages: 'messages',
+      friendships: 'friendships'
     },
   },
   security:{

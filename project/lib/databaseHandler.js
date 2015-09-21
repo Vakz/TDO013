@@ -1,6 +1,7 @@
 "use strict";
 
-var errors = require('./errors');
+var ArgumentError = require('./errors').ArgumentError;
+var DatabaseError = require('./errors').DatabaseError;
 var config = require('./config');
 var UserSecurity = require('./userSecurity');
 var Q = require('q');
@@ -37,11 +38,11 @@ var DatabaseHandler = function() {
   var genericUpdateUser = function(id, params) {
     return Q.promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new errors.DatabaseError("Not connected to database"));
-      else if (!mongodb.ObjectId.isValid(id)) reject(new errors.ArgumentError("id is invalid"));
+      if(!connected) reject(new DatabaseError("Not connected to database"));
+      else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError("id is invalid"));
       else {
         getCollection(config.get('database:collections:auth')).updateOne({_id: id}, {$set: params})
-        .then((doc) => { if (!doc.result.nModified) throw new errors.ArgumentError("No user updated"); })
+        .then((doc) => { if (!doc.result.nModified) throw new ArgumentError("No user updated"); })
         .then(() => scope.getUser({_id: id}))
         .then((doc) => resolve(doc))
         .catch(reject);
@@ -76,8 +77,8 @@ var DatabaseHandler = function() {
 
   this.getManyById = function(ids) {
     return Q.Promise(function(resolve, reject, notify) {
-      if (!Array.isArray(ids)) reject(new errors.ArgumentError("ids should be an array of valid IDs"));
-      else if (ids.some((id) => !mongodb.ObjectId.isValid(id))) reject(new errors.ArgumentError("Invalid IDs"));
+      if (!Array.isArray(ids)) reject(new ArgumentError("ids should be an array of valid IDs"));
+      else if (ids.some((id) => !mongodb.ObjectId.isValid(id))) reject(new ArgumentError("Invalid IDs"));
       else {
         getCollection(config.get('database:collections:auth')).find({_id: {$in: ids} }).toArray()
         .then((res) => resolve(res))
@@ -92,20 +93,20 @@ var DatabaseHandler = function() {
     return Q.Promise(function(resolve, reject, notify) {
       // Make sure all are set
       if (!Object.keys(params).every(s => requiredParams.indexOf(s) >= 0)) {
-        reject(new errors.ArgumentError("Only username and password should be specified"));
+        reject(new ArgumentError("Only username and password should be specified"));
       }
       else if ([params.username, params.password].some(s => !s || typeof s !== 'string' || !s.trim())) {
-        reject(new errors.ArgumentError("Username and hash must be specified"));
+        reject(new ArgumentError("Username and hash must be specified"));
       }
       /* istanbul ignore if */
       else if (!connected) {
-        reject(new errors.DatabaseError("Not connected to database"));
+        reject(new DatabaseError("Not connected to database"));
       }
       else {
         // https://gist.github.com/Vakz/77b59958973ad49785b9
         scope.getUser({username: params.username})
         .then(function(doc) {
-          if (doc) throw new errors.ArgumentError("Username already taken");
+          if (doc) throw new ArgumentError("Username already taken");
         })
         .then(() => params._id = generateId())
         .then(() => UserSecurity.generateToken(config.get('security:sessions:tokenLength')))
@@ -119,14 +120,14 @@ var DatabaseHandler = function() {
 
   this.getUser = function(params) {
     return Q.Promise(function(resolve, reject, notify) {
-      if (!connected) reject(new errors.DatabaseError("Not connected to database"));
+      if (!connected) reject(new DatabaseError("Not connected to database"));
       Q.Promise(function(resolve) {
         prepareParams(params);
         resolve();
       })
       .then(function() {
         if (Object.keys(params).length === 0)
-          throw new errors.ArgumentError("Must specficy at least one parameter");
+          throw new ArgumentError("Must specficy at least one parameter");
       })
       .then(() => getCollection(config.get('database:collections:auth')).findOne(params))
       .then(resolve)
@@ -136,13 +137,13 @@ var DatabaseHandler = function() {
 
   this.updateToken = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
-      if (typeof id !== 'string' || !mongodb.ObjectId.isValid(id)) reject(new errors.ArgumentError("Not a valid id"));
+      if (typeof id !== 'string' || !mongodb.ObjectId.isValid(id)) reject(new ArgumentError("Not a valid id"));
       else {
         UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
         .then((res) => genericUpdateUser(id, {token: res}))
         .then((res) => resolve(res.token))
         .catch(function(err) {
-          if (err instanceof errors.ArgumentError) reject(new errors.ArgumentError("No user with id " + id));
+          if (err instanceof ArgumentError) reject(new ArgumentError("No user with id " + id));
           // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
           else throw (err);
         })
@@ -166,7 +167,7 @@ var DatabaseHandler = function() {
     return Q.Promise(function(resolve, reject, notify)
     {
       if (!searchword || typeof searchword !== 'string' || !searchword.trim()) {
-        reject(new errors.ArgumentError('Searchword cannot be empty'));
+        reject(new ArgumentError('Searchword cannot be empty'));
       }
       else {
         getCollection(config.get('database:collections:auth'))
@@ -180,13 +181,78 @@ var DatabaseHandler = function() {
     return Q.Promise(function(resolve, reject, notify) {
       scope.getManyById([from, to])
       .then(function(res) {
-        res.some(function(doc) { if (!doc) throw new errors.ArgumentError("User not found"); });
+        if (res.length !== 2 || res.some((doc) => !doc)) throw new ArgumentError("User not found");
       })
-      .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new errors.ArgumentError('Message cannot be empty'); })
+      .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new ArgumentError('Message cannot be empty'); })
       .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId()}; })
       .then((params) => getCollection(config.get('database:collections:messages')).insertOne(params))
       .then((res) => resolve(res.ops[0]))
       .catch(reject);
+    });
+  };
+
+  this.getMessages = function(id) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!mongodb.ObjectId.isValid(id)) {
+        reject(new ArgumentError("Invalid id"));
+      }
+      else {
+        getCollection(config.get('database:collections:messages')).find({to: id}).toArray()
+        .then(resolve)
+        .catch(reject);
+      }
+    });
+  };
+
+  this.getFriendships = function(id) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!mongodb.ObjectId.isValid(id)) {
+        reject(new ArgumentError("Invalid id"));
+      }
+      else {
+        getCollection(config.get('database:collections:friendships'))
+        .find({$or: [{first: id}, {second: id}]}).toArray()
+        .then(resolve)
+        .catch(reject);
+      }
+    });
+  };
+
+  this.checkIfFriends = function(first, second) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
+        reject(new ArgumentError("Invalid id"));
+      }
+      else {
+        if (first > second) first = [second, second = first][0];
+        getCollection(config.get('database:collections:friendships')).findOne({'first':first, 'second': second})
+        .then(function(res) {
+          return res;
+        })
+        .then((res) => resolve(res ? true : false))
+        .catch(reject);
+      }
+    });
+  };
+
+  this.newFriendship = function(first, second) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
+        reject(new ArgumentError("Invalid id"));
+      }
+      else if (first === second) {
+        reject(new ArgumentError("Both ids cannot be the same"));
+      }
+      else {
+        // Sort for easier storage
+        if (first > second) first = [second, second = first][0];
+        scope.checkIfFriends(first, second)
+        .then((res) => { if (res) throw new ArgumentError("Users are already friends"); })
+        .then(() => ({'first': first, 'second': second, _id: generateId()}))
+        .then((params) => getCollection(config.get('database:collections:friendships')).insert(params))
+        .then((res) => resolve(res.ops[0]))
+        .catch(reject);
+      }
     });
   };
 };

@@ -44,7 +44,8 @@ describe('DatabaseHandler', function() {
 
       it('should return a DatabaseError', function(done) {
         dbHandler.close();
-        dbHandler.getUser({username: 'uname'}).catch(function(err){
+        dbHandler.getUser({username: 'uname'})
+        .then(null, function(err){
           err.should.be.instanceOf(errors.DatabaseError);
           done();
         }).done() ;
@@ -78,7 +79,8 @@ describe('DatabaseHandler', function() {
       after((done) => cleanCollection(done, config.get('database:collections:auth')));
 
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({'username': username, password: 'otherpw'}).catch(function(err) {
+        dbHandler.registerUser({'username': username, password: 'otherpw'})
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -87,7 +89,8 @@ describe('DatabaseHandler', function() {
 
     describe('Attempt to create user without specifying all parameters', function() {
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({username:'', password:'pw'}).catch(function(err) {
+        dbHandler.registerUser({username:'', password:'pw'})
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -96,7 +99,8 @@ describe('DatabaseHandler', function() {
 
     describe('Attempt to add extra, non-valid, parameters', function() {
       it('should return an ArgumentError', function(done) {
-        dbHandler.registerUser({username:'username', password:'pw', extra:'aaa'}).catch(function(err) {
+        dbHandler.registerUser({username:'username', password:'pw', extra:'aaa'})
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -144,7 +148,8 @@ describe('DatabaseHandler', function() {
         dbHandler.getUser({}).then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           return dbHandler.getUser({username: ' '});
-        }).catch(function(err) {
+        })
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -183,7 +188,7 @@ describe('DatabaseHandler', function() {
     describe('Attempt to update non-existant user', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.updateToken((new mongodb.ObjectId()).toString())
-        .catch(function(err) {
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         }).done();
@@ -193,7 +198,7 @@ describe('DatabaseHandler', function() {
     describe('Attempt to update invalid id', function() {
       it('should return ArgumentError', function(done) {
           dbHandler.updateToken("a")
-          .catch(function(err) {
+          .then(null, function(err) {
             err.should.be.instanceOf(errors.ArgumentError);
             done();
           }).done();
@@ -316,7 +321,7 @@ describe('DatabaseHandler', function() {
     describe('Send only id', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.getManyById((new ObjectId()).toString())
-        .catch(function(err) {
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         });
@@ -327,7 +332,7 @@ describe('DatabaseHandler', function() {
       it('should return an ArgumentError', function(done) {
         var ids = [(new ObjectId()).toString(), null];
         dbHandler.getManyById(ids)
-        .catch(function(err) {
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         });
@@ -390,7 +395,7 @@ describe('DatabaseHandler', function() {
     describe('Search with empty searchword', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.searchUsers('')
-        .catch(function(err) {
+        .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
         })
         .then(() => done())
@@ -444,10 +449,15 @@ describe('DatabaseHandler', function() {
 
       it('should return ArgumentError in both cases', function(done) {
         dbHandler.newMessage(id, (new ObjectId()).toString(), 'hello')
-        .catch((err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+        })
         .then(() => dbHandler.newMessage((new ObjectId()).toString(), id, 'hello'))
-        .catch((err) => err.should.be.instanceOf(errors.ArgumentError))
-        .then(() => done());
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
+        .done();
       });
     });
 
@@ -467,11 +477,139 @@ describe('DatabaseHandler', function() {
 
       it('should return an ArgumentError', function(done) {
         dbHandler.newMessage(users[0]._id, users[1]._id, '')
-        .catch((err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(null, (err) => err.should.be.instanceOf(errors.ArgumentError))
         .then(() => done())
         .done();
       });
     });
+  });
+
+  describe('getMessages', function() {
+
+    describe('Get two messages', function() {
+      var users = null;
+      var messages = null;
+      before("Register two users and enter two messages", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((results) => users = results)
+        .then(function() {
+          return Q.all([
+            dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'),
+            dbHandler.newMessage(users[0]._id, users[1]._id, 'again')
+          ]);
+        })
+        .then((results) => messages = results)
+        .then(() => done())
+        .done();
+      });
+
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:messages'));
+        done();
+      });
+
+      it('should return the two messages', function(done) {
+        dbHandler.getMessages(users[1]._id)
+        .then(function(res) {
+          res[0].should.eql(messages[0]);
+          res[1].should.eql(messages[1]);
+        })
+        .then(() => done())
+        .done();
+      });
+    });
+  });
+
+  describe('newFriendship', function() {
+    describe('Create friendship between two users', function() {
+      var users = null;
+      before("Register two users and enter two messages", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:friendships'));
+        done();
+      });
+
+      it('should work as expected', function(done) {
+        dbHandler.newFriendship(users[0]._id, users[1]._id)
+        .then((res) => ObjectId.isValid(res._id).should.be.true())
+        .then(() => done())
+        .done();
+      });
+    });
+
+    describe('Create friendship between users with existing friendship', function() {
+      var users = null;
+      before("Register two users and enter two messages", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done())
+        .done();
+      });
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:friendships'));
+        done();
+      });
+
+      it('should return an ArgumentError', function(done) {
+        dbHandler.newFriendship(users[0]._id, users[1]._id)
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Attempt to create friendship with self', function() {
+      var user = null;
+      before('Register a user', function(done){
+        dbHandler.registerUser({username: 'usname', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        done();
+      });
+
+      it('should return ArgumentError', function(done) {
+        dbHandler.newFriendship(user._id, user._id)
+        .then(null, (err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(() => done())
+        .done();
+      });
+    });
+  });
+
+  describe.skip('getFriendships', function() {
+
+  });
+
+  describe.skip('checkIfFriends', function() {
+
   });
 
   after(() => db.close());

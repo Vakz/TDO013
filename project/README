@@ -20,8 +20,10 @@ Done
 -Update user token
 -Update user password
 -Find users based on partial username
+-Submit new message on friend page. Requires sender id, reciever id, message text and date
+-Get all messages related to a userId
+-Get all friends related to a userId
 
 TODO
--Get all friends related to a userId
--Get all messages related to a userId
--Submit new message on friend page. Requires sender id, reciever id, message text and date
+-Unfriend
+-Delete message
