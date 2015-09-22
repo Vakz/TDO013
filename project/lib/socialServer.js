@@ -3,13 +3,15 @@
 var express = require('express');
 var errors = require('./errors');
 var config = require('./config');
+var RequestHandler = require('./requestHandler')
 var clientSessions = require('client-sessions');
 var UserSecurity = require('./userSecurity');
+var bodyParser = require('body-parser');
 
 var SocialServer = function(){
 
   var app = express();
-
+  var requestHandler = new RequestHandler();
   var sessionsSettings = UserSecurity.getSessionOptions();
 
   setupMiddleware();
@@ -17,18 +19,22 @@ var SocialServer = function(){
 
   function setupMiddleware() {
     app.use(express.static('static'));
+    app.use(bodyParser.json())
     app.use(clientSessions(sessionsSettings));
   }
 
   function setupRoutes() {
-    app.get('/asd', function(req, res) {
-      res.send("No cookie");
-    });
+    app.get('/getUsersById', requestHandler.getUsersById);
+
+    app.all('*', function(req, res) {
+      res.sendStatus(404);
+    })
   }
 
   this.start = function() {
-    if (Number.isInteger(config.get('port'))) {
-      app.listen(config.get('port'));
+    if (Number.isInteger(config.get('server:port'))) {
+      requestHandler.connect()
+      .then(() => app.listen(config.get('server:port')))
     }
     else{
       throw new errors.ArgumentError("Port number not an integer");

@@ -11,15 +11,15 @@ var errors = require('../lib/errors');
 var mongodb = require('mongodb');
 
 describe('DatabaseHandler', function() {
-  var db = null;
+  var helper = require('./helper');
   var dbHandler = new DatabaseHandler();
   var length = config.get("security:sessions:tokenLength");
   var tokenPattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
   dbHandler.connect();
 
-  var cleanCollection = function(done, collection) {
-    db.collection(collection).removeMany();
-    done();
+  var cleanDb = function(done) {
+    helper.cleanDb()
+    .then(done);
   };
 
   before(function(done) {
@@ -30,13 +30,9 @@ describe('DatabaseHandler', function() {
       console.error("DB used for testing should end with '_test'");
       process.exit(1);
     }
-    mongodb.MongoClient.connect(
-      config.get('database:address') + config.get('database:db'),
-      function(err, _db) {
-        db = _db;
-        dbHandler.connect().then(() => done());
-    });
-
+    helper.start()
+    .then(dbHandler.connect)
+    .then(() => done());
   });
 
   describe("General database functions", function() {
@@ -56,7 +52,7 @@ describe('DatabaseHandler', function() {
   });
 
   describe('registerUser', function() {
-    after((done) => cleanCollection(done, config.get('database:collections:auth')));
+    after(cleanDb);
 
       describe('Create valid user', function() {
         it('should return a newly registered user with id', function(done) {
@@ -76,7 +72,7 @@ describe('DatabaseHandler', function() {
         dbHandler.registerUser({'username': username, password: 'pw'}).then(() => done()).done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return an ArgumentError', function(done) {
         dbHandler.registerUser({'username': username, password: 'otherpw'})
@@ -112,7 +108,7 @@ describe('DatabaseHandler', function() {
   describe("getUser", function() {
     describe('Get existing user', function() {
       var id = null;
-      after(done => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       before('Create user to find', function(done) {
         dbHandler.registerUser({username:'uname', password:'pw'}).then(function(res) {
@@ -162,7 +158,7 @@ describe('DatabaseHandler', function() {
       var id = null;
       var token = null;
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       before('Create a user to update', function(done) {
         dbHandler.registerUser({username: 'uname', password: 'pw'})
@@ -226,7 +222,7 @@ describe('DatabaseHandler', function() {
         }).done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return user with new password and old token', function(done) {
         dbHandler.updatePassword(id, 'newpassword', false)
@@ -256,7 +252,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return user with new password and old token', function(done) {
         dbHandler.updatePassword(id, 'newpassword', true)
@@ -281,7 +277,7 @@ describe('DatabaseHandler', function() {
         .then(() => done());
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return the correct user', function(done) {
         dbHandler.getManyById([id])
@@ -305,7 +301,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return the correct two users', function(done) {
         var ids = [users[0]._id, users[1]._id];
@@ -357,7 +353,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return the correct user', function() {
         dbHandler.searchUsers('usname')
@@ -384,7 +380,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return the correct two users', function(done) {
         dbHandler.searchUsers('user')
@@ -422,11 +418,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:messages'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return a valid message', function(done) {
         dbHandler.newMessage(users[0]._id, users[1]._id, 'hello')
@@ -450,7 +442,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return ArgumentError in both cases', function(done) {
         dbHandler.newMessage(id, (new ObjectId()).toString(), 'hello')
@@ -478,7 +470,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after((done) => cleanCollection(done, config.get('database:collections:auth')));
+      after(cleanDb);
 
       it('should return an ArgumentError', function(done) {
         dbHandler.newMessage(users[0]._id, users[1]._id, '')
@@ -509,11 +501,7 @@ describe('DatabaseHandler', function() {
       });
 
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:messages'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return the two messages', function(done) {
         dbHandler.getMessages(users[1]._id)
@@ -550,11 +538,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:friendships'));
-        done();
-      });
+      after(cleanDb);
 
       it('should work as expected', function(done) {
         dbHandler.newFriendship(users[0]._id, users[1]._id)
@@ -577,11 +561,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:friendships'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return an ArgumentError', function(done) {
         dbHandler.newFriendship(users[0]._id, users[1]._id)
@@ -616,10 +596,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return ArgumentError', function(done) {
         dbHandler.newFriendship(user._id, user._id)
@@ -650,11 +627,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:friendships'));
-        done();
-      });
+      after(cleanDb);
 
       it('should find the two friendships', function(done) {
         dbHandler.getFriendships(users[0]._id)
@@ -691,11 +664,7 @@ describe('DatabaseHandler', function() {
       });
 
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:friendships'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return true', function(done) {
         dbHandler.checkIfFriends(users[0]._id, users[1]._id)
@@ -741,11 +710,7 @@ describe('DatabaseHandler', function() {
         });
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:messages'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return true', function(done) {
         dbHandler.deleteMessage(message._id)
@@ -794,11 +759,7 @@ describe('DatabaseHandler', function() {
         .done();
       });
 
-      after(function(done) {
-        cleanCollection(done, config.get('database:collections:auth'));
-        cleanCollection(done, config.get('database:collections:friendships'));
-        done();
-      });
+      after(cleanDb);
 
       it('should return true and users should no longer be friends', function(done) {
         dbHandler.unfriend(users[0]._id, users[1]._id)
@@ -835,5 +796,5 @@ describe('DatabaseHandler', function() {
     });
   });
 
-  after(() => db.close());
+  after(() => helper.close());
 });

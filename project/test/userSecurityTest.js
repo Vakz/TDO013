@@ -57,7 +57,7 @@ describe('UserSecurity', function() {
     describe("Attempt to hash zero-length password", function() {
       it('should return ArgumentError', function(done) {
         UserSecurity.hash("")
-        .catch((err) => { err.should.be.instanceOf(errors.ArgumentError); done(); })
+        .then(null, (err) => { err.should.be.instanceOf(errors.ArgumentError); done(); })
         .done();
       });
     });
@@ -76,7 +76,7 @@ describe('UserSecurity', function() {
     describe('Attempt to verify zero-length password', function() {
       it('should return ArgumentError', function(done) {
         UserSecurity.verifyHash("")
-        .catch((err) => { err.should.be.instanceOf(errors.ArgumentError); done(); });
+        .then(null, (err) => { err.should.be.instanceOf(errors.ArgumentError); done(); });
       });
     });
   });
