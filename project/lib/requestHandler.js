@@ -39,7 +39,8 @@ var RequestHandler = function() {
   this.checkToken = function(token, id) {
     return Q.Promise(function(resolve, reject, notify) {
       dbHandler.getUser({_id: id})
-      .then((user) => resolve(user.token === token, reject));
+      .then((user) => resolve(user.token === token, reject))
+      .catch(reject);
     });
   };
 
@@ -61,7 +62,7 @@ var RequestHandler = function() {
     if (req.session.loggedIn) errorHandler(res, new ArgumentError("User already logged in"));
     else if (!req.body.username || !req.body.password) errorHandler(res, new ArgumentError("Missing parameters"));
     else if(req.body.password.length < config.get('security:passwords:minLength'))
-    errorHandler(res, new ArgumentError("Password too short"));
+      errorHandler(res, new ArgumentError("Password too short"));
     else {
       UserSecurity.hash(req.body.password)
       .then((hash) => ({username: req.body.username, password: hash}))
@@ -98,7 +99,7 @@ var RequestHandler = function() {
     if (!req.session.loggedIn) errorHandler(res, new ArgumentError("User not logged in"));
     else {
       req.session.reset();
-      res.sendStatus(200);
+      res.sendStatus(204);
     }
   };
 
@@ -108,6 +109,34 @@ var RequestHandler = function() {
       dbHandler.updateToken(req.session._id)
       .then(() => scope.logout(req, res))
       .catch((err) => errorHandler(res, err));
+    }
+  };
+
+  this.updatePassword = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError("User not logged in"));
+    else if (!req.body.password) errorHandler(res, new ArgumentError("Missing parameter 'password'"));
+    else if(req.body.password.length < config.get('security:passwords:minLength'))
+      errorHandler(res, new ArgumentError("Password too short"));
+    else {
+      var reset = req.body.reset ? true : false;
+      UserSecurity.hash(req.body.password)
+      .then(function(pw) {
+        dbHandler.updatePassword(req.session._id, pw, reset)
+        .then(() => res.sendStatus(204))
+        .done();
+      });
+    }
+  };
+
+  this.getProfile = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError("User not logged in"));
+    else if (!req.body.id) errorHandler(res, new ArgumentError("Missing parameter 'id'"));
+    else {
+      var access = req.body.id === req.session._id;
+      if (!access) {
+        dbHandler.checkIfFriends(req.session._id)
+        .then((res) => access = res);
+      }
     }
   };
 };

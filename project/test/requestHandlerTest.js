@@ -281,6 +281,20 @@ describe('RequestHandler', function() {
         reqHandler.login(req, res);
       });
     });
+
+    describe('Attempt to login with missing parameters', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method: 'POST', url: '/login',
+        body: {username: 'usname'}});
+
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        req.session = {};
+        reqHandler.login(req, res);
+      });
+    });
   });
 
   describe('logout', function() {
@@ -288,7 +302,7 @@ describe('RequestHandler', function() {
       it('should return 200', function(done) {
         var req = httpMocks.createRequest({method: 'POST', url: '/logout'});
         var res = setupResponse(function(data) {
-          res.statusCode.should.equal(200);
+          res.statusCode.should.equal(204);
           done();
         });
 
@@ -343,7 +357,7 @@ describe('RequestHandler', function() {
       it('should create a new token and make the old one invalid', function(done) {
         var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
         var res = setupResponse(function(data) {
-          res.statusCode.should.equal(200);
+          res.statusCode.should.equal(204);
 
           var reqLogin = httpMocks.createRequest({method: 'POST', url: '/login',
           body: {username: 'usname', password: 'decentpassword'}});
@@ -363,6 +377,107 @@ describe('RequestHandler', function() {
           req.session._id = user._id;
           reqHandler.resetSessions(req, res);
         });
+      });
+    });
+  });
+
+  describe('checkToken', function() {
+    describe('verify users token', function() {
+      var user = null;
+      before(function(done) {
+        UserSecurity.hash('decentpassword')
+        .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return true', function(done) {
+        reqHandler.checkToken(user.token, user._id)
+        .then(function(res) {
+          res.should.be.true();
+          done();
+        });
+      });
+    });
+  });
+
+  describe('updatePassword', function() {
+    describe('update password without updating token', function() {
+      var user = null;
+      before(function(done) {
+        UserSecurity.hash('decentpassword')
+        .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and token should remain the same', function(done) {
+        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions',
+        body: {password: 'anewgoodpassword', reset: false}});
+        var res = setupResponse(function(data) {
+
+          res.statusCode.should.equal(204);
+          dbHandler.getUser({_id: user._id})
+          .then((res) => res.token.should.equal(user.token))
+          .then(() => done());
+        });
+        req.session = {loggedIn: true, _id: user._id, token: user.token};
+        reqHandler.updatePassword(req, res);
+      });
+    });
+
+    describe('update password and update token', function() {
+      var user = null;
+      before(function(done) {
+        UserSecurity.hash('decentpassword')
+        .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and token should remain the same', function(done) {
+        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions',
+        body: {password: 'anewgoodpassword', reset: true}});
+        var res = setupResponse(function(data) {
+
+          res.statusCode.should.equal(204);
+          dbHandler.getUser({_id: user._id})
+          .then((res) => res.token.should.not.equal(user.token))
+          .then(() => done());
+        });
+        req.session = {loggedIn: true, _id: user._id, token: user.token};
+        reqHandler.updatePassword(req, res);
+      });
+    });
+
+    describe('update password to too short word', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions',
+        body: {password: 'short'}});
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        req.session = {loggedIn: true};
+        reqHandler.updatePassword(req, res);
+      });
+    });
+
+    describe('update password without specifying new password', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        req.session = {loggedIn: true};
+        reqHandler.updatePassword(req, res);
       });
     });
   });
