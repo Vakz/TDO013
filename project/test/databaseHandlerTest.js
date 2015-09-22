@@ -170,7 +170,6 @@ describe('DatabaseHandler', function() {
           function(res) {
             token = res.token;
             id = res._id;
-            console.log(id);
             tokenPattern.test(token).should.be.true();
             done();
           })
@@ -178,7 +177,6 @@ describe('DatabaseHandler', function() {
       });
 
       it('should return new token', function(done) {
-        console.log(id);
         dbHandler.updateToken(id)
         .then(function(res) {
           tokenPattern.test(res).should.be.true();
@@ -203,6 +201,10 @@ describe('DatabaseHandler', function() {
           dbHandler.updateToken("a")
           .then(null, function(err) {
             err.should.be.instanceOf(errors.ArgumentError);
+          })
+          .then(() => dbHandler.updateToken(null))
+          .then(null, function(err) {
+            err.should.be.instanceOf(errors.ArgumentError)
             done();
           }).done();
       });
@@ -523,6 +525,16 @@ describe('DatabaseHandler', function() {
         .done();
       });
     });
+
+    describe('Get message with invalid user id', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.getMessages('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      });
+    });
   });
 
   describe('newFriendship', function() {
@@ -554,7 +566,7 @@ describe('DatabaseHandler', function() {
 
     describe('Create friendship between users with existing friendship', function() {
       var users = null;
-      before("Register two users and enter two messages", function(done) {
+      before("Register two users and create friendship", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
           dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
@@ -581,6 +593,20 @@ describe('DatabaseHandler', function() {
       });
     });
 
+    describe('Attempt to create friendship where either is invalid', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.newFriendship((new ObjectId()).toString(), 'a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError)
+        })
+        .then(() => dbHandler.newFriendship('a', (new ObjectId()).toString()))
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      })
+    })
+
     describe('Attempt to create friendship with self', function() {
       var user = null;
       before('Register a user', function(done){
@@ -604,12 +630,209 @@ describe('DatabaseHandler', function() {
     });
   });
 
-  describe.skip('getFriendships', function() {
+  describe('getFriendships', function() {
+    var users = null;
+    describe('Get two friendships', function() {
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'}),
+          dbHandler.registerUser({username: 'userThree', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(function() {
+          return Q.all([
+            dbHandler.newFriendship(users[0]._id, users[1]._id),
+            dbHandler.newFriendship(users[0]._id, users[2]._id)
+          ]);
+        })
+        .then(() => done())
+        .done();
+      });
 
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:friendships'));
+        done();
+      });
+
+      it('should find the two friendships', function(done) {
+        dbHandler.getFriendships(users[0]._id)
+        .then(function(res) {
+          res.length.should.equal(2);
+          done();
+        });
+      });
+    })
+
+    describe('Get with invalid id', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.getFriendships('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      });
+    })
   });
 
-  describe.skip('checkIfFriends', function() {
+  describe('checkIfFriends', function() {
+    describe('Create valid friendship', function() {
 
+      before("Register two users and create friendship", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done())
+        .done();
+      });
+
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:friendships'));
+        done();
+      });
+
+      it('should return true', function(done) {
+        dbHandler.checkIfFriends(users[0]._id, users[1]._id)
+        .then((res) => res.should.be.true())
+        .then(() => dbHandler.checkIfFriends(users[1]._id, users[0]._id))
+        .then(function(res) {
+          res.should.be.true();
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Check friendship where either id is invalid', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.checkIfFriends((new ObjectId()).toString(), 'a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError)
+        })
+        .then(() => dbHandler.checkIfFriends('a', (new ObjectId()).toString()))
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      })
+    });
+  });
+
+  describe('deleteMessage', function() {
+    describe('Delete existing message', function() {
+      var users = null;
+      var message = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'))
+        .then(function(res) {
+          message = res;
+          done();
+        });
+      });
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:messages'));
+        done();
+      });
+
+      it('should return true', function(done) {
+        dbHandler.deleteMessage(message._id)
+        .then(function(res) {
+          res.should.be.true();
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('delete non-existant message', function() {
+      it('should return false', function(done) {
+        dbHandler.deleteMessage((new ObjectId()).toString())
+        .then(function(res) {
+          res.should.be.false();
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('delete invalid id', function() {
+      it('should return ArgumentError', function(done) {
+        dbHandler.deleteMessage('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
+        .done();
+      })
+    })
+  });
+
+  describe('unfriend', function() {
+    describe('delete valid friendship', function() {
+      var users = null;
+      before("Register two users and create friendship", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done())
+        .done();
+      });
+
+      after(function(done) {
+        cleanCollection(done, config.get('database:collections:auth'));
+        cleanCollection(done, config.get('database:collections:friendships'));
+        done();
+      });
+
+      it('should return true and users should no longer be friends', function(done) {
+        dbHandler.unfriend(users[0]._id, users[1]._id)
+        .then((res) => res.should.be.true())
+        .then(() => dbHandler.checkIfFriends(users[0]._id, users[1]._id))
+        .then(function(res) {
+          res.should.be.false();
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Delete non-existant friendship', function() {
+      it('should return true', function(done) {
+        dbHandler.unfriend((new ObjectId()).toString(), (new ObjectId()).toString())
+        .then(function(res) {
+          res.should.be.false();
+          done();
+        });
+      });
+    });
+
+    describe('Attempt to delete where either id is invalid', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.unfriend((new ObjectId()).toString(), 'a')
+        .then(null, (err) => err.should.be.instanceOf(errors.ArgumentError))
+        .then(() => dbHandler.unfriend('a', (new ObjectId()).toString()))
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      });
+    });
   });
 
   after(() => db.close());

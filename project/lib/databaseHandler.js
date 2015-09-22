@@ -137,18 +137,15 @@ var DatabaseHandler = function() {
 
   this.updateToken = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
-      if (typeof id !== 'string' || !mongodb.ObjectId.isValid(id)) reject(new ArgumentError("Not a valid id"));
-      else {
-        UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
-        .then((res) => genericUpdateUser(id, {token: res}))
-        .then((res) => resolve(res.token))
-        .catch(function(err) {
-          if (err instanceof ArgumentError) reject(new ArgumentError("No user with id " + id));
-          // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
-          else throw (err);
-        })
-        .catch(reject);
-      }
+      UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
+      .then((res) => genericUpdateUser(id, {token: res}))
+      .then((res) => resolve(res.token))
+      .catch(function(err) {
+        if (err instanceof ArgumentError) reject(new ArgumentError("No user with id " + id));
+        // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
+        else throw (err);
+      })
+      .catch(reject);
     });
   };
 
@@ -251,6 +248,37 @@ var DatabaseHandler = function() {
         .then(() => ({'first': first, 'second': second, _id: generateId()}))
         .then((params) => getCollection(config.get('database:collections:friendships')).insert(params))
         .then((res) => resolve(res.ops[0]))
+        .catch(reject);
+      }
+    });
+  };
+
+  this.deleteMessage = function(id) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError("Invalid id"));
+      else {
+        getCollection(config.get('database:collections:messages'))
+        .remove({_id: id})
+        .then(function(res) {
+          resolve(res.result.n ? true : false);
+        })
+        .catch(reject);
+      }
+    });
+  };
+
+  this.unfriend = function(first, second) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
+        reject(new ArgumentError("Invalid id"));
+      }
+      else  {
+        if (first > second) first = [second, second = first][0];
+        getCollection(config.get('database:collections:friendships'))
+        .remove({'first': first, 'second': second})
+        .then(function(res) {
+          resolve(res.result.n ? true : false);
+        })
         .catch(reject);
       }
     });

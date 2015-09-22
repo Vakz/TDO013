@@ -23,7 +23,5 @@ Done
 -Submit new message on friend page. Requires sender id, reciever id, message text and date
 -Get all messages related to a userId
 -Get all friends related to a userId
-
-TODO
 -Unfriend
 -Delete message
