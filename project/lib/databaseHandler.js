@@ -42,7 +42,7 @@ var DatabaseHandler = function() {
       else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError("id is invalid"));
       else {
         getCollection(config.get('database:collections:auth')).updateOne({_id: id}, {$set: params})
-        .then((doc) => { if (!doc.result.nModified) throw new ArgumentError("No user updated"); })
+        .then((doc) => { if (!doc.result.n) throw new ArgumentError("No user updated"); })
         .then(() => scope.getUser({_id: id}))
         .then((doc) => resolve(doc))
         .catch(reject);
@@ -184,7 +184,7 @@ var DatabaseHandler = function() {
         if (res.length !== 2 || res.some((doc) => !doc)) throw new ArgumentError("User not found");
       })
       .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new ArgumentError('Message cannot be empty'); })
-      .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId()}; })
+      .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId(), time: Date.now()}; })
       .then((params) => getCollection(config.get('database:collections:messages')).insertOne(params))
       .then((res) => resolve(res.ops[0]))
       .catch(reject);
@@ -197,7 +197,7 @@ var DatabaseHandler = function() {
         reject(new ArgumentError("Invalid id"));
       }
       else {
-        getCollection(config.get('database:collections:messages')).find({to: id}).toArray()
+        getCollection(config.get('database:collections:messages')).find({to: id}).sort({time: 1}).toArray()
         .then(resolve)
         .catch(reject);
       }

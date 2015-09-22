@@ -170,6 +170,7 @@ describe('DatabaseHandler', function() {
           function(res) {
             token = res.token;
             id = res._id;
+            console.log(id);
             tokenPattern.test(token).should.be.true();
             done();
           })
@@ -177,7 +178,9 @@ describe('DatabaseHandler', function() {
       });
 
       it('should return new token', function(done) {
-        dbHandler.updateToken(id).then(function(res) {
+        console.log(id);
+        dbHandler.updateToken(id)
+        .then(function(res) {
           tokenPattern.test(res).should.be.true();
           res.should.not.equal(token);
           done();
@@ -495,13 +498,10 @@ describe('DatabaseHandler', function() {
           dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
         ])
         .then((results) => users = results)
-        .then(function() {
-          return Q.all([
-            dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'),
-            dbHandler.newMessage(users[0]._id, users[1]._id, 'again')
-          ]);
-        })
-        .then((results) => messages = results)
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'))
+        .then((res) => messages = [res])
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'again'))
+        .then((res) => messages[messages.length] = res)
         .then(() => done())
         .done();
       });
