@@ -8,7 +8,7 @@ exports.start = function() {
     var c = config.get('database:collections');
     Object.keys(c).forEach(function(key) {
       collections[collections.length] = c[key];
-    })
+    });
 
     mongodb.MongoClient.connect(
       config.get('database:address') + config.get('database:db'),
@@ -16,7 +16,7 @@ exports.start = function() {
         db = _db;
         resolve();
     });
-  })
+  });
 };
 
 exports.cleanDb = function() {
@@ -29,8 +29,8 @@ exports.cleanDb = function() {
     resolve();
   });
 
-}
+};
 
 exports.close = function() {
   db.close();
-}
+};

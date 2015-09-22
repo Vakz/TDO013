@@ -1,4 +1,5 @@
 process.env['database:db'] = 'social_website_test';
+process.env.NODE_ENV = 'test';
 
 require('should');
 var Q = require('q');
@@ -33,6 +34,18 @@ describe('DatabaseHandler', function() {
     helper.start()
     .then(dbHandler.connect)
     .then(() => done());
+  });
+
+  describe('prepareParams', function() {
+    describe('Delete empty string', function() {
+      it('should return the object with the empty key removed', function(done) {
+          var params = {correct: 'correct', toBeRemoved: ''};
+          DatabaseHandler._private.prepareParams(params);
+          params.hasOwnProperty('correct').should.be.true();
+          params.hasOwnProperty('toBeRemoved').should.be.false();
+          done();
+      });
+    });
   });
 
   describe("General database functions", function() {
@@ -77,7 +90,7 @@ describe('DatabaseHandler', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.registerUser({'username': username, password: 'otherpw'})
         .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError);
+          err.should.be.instanceOf(errors.SemanticsError);
           done();
         }).done();
       });
@@ -186,7 +199,7 @@ describe('DatabaseHandler', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.updateToken((new mongodb.ObjectId()).toString())
         .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError);
+          err.should.be.instanceOf(errors.SemanticsError);
           done();
         }).done();
       });
@@ -200,7 +213,7 @@ describe('DatabaseHandler', function() {
           })
           .then(() => dbHandler.updateToken(null))
           .then(null, function(err) {
-            err.should.be.instanceOf(errors.ArgumentError)
+            err.should.be.instanceOf(errors.ArgumentError);
             done();
           }).done();
       });
@@ -447,11 +460,11 @@ describe('DatabaseHandler', function() {
       it('should return ArgumentError in both cases', function(done) {
         dbHandler.newMessage(id, (new ObjectId()).toString(), 'hello')
         .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError);
+          err.should.be.instanceOf(errors.SemanticsError);
         })
         .then(() => dbHandler.newMessage((new ObjectId()).toString(), id, 'hello'))
         .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError);
+          err.should.be.instanceOf(errors.SemanticsError);
           done();
         })
         .done();
@@ -492,9 +505,9 @@ describe('DatabaseHandler', function() {
           dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
         ])
         .then((results) => users = results)
-        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'a'))
         .then((res) => messages = [res])
-        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'again'))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'b'))
         .then((res) => messages[messages.length] = res)
         .then(() => done())
         .done();
@@ -506,8 +519,11 @@ describe('DatabaseHandler', function() {
       it('should return the two messages', function(done) {
         dbHandler.getMessages(users[1]._id)
         .then(function(res) {
-          res[0].should.eql(messages[0]);
-          res[1].should.eql(messages[1]);
+          var sort = (a, b) => a.message < b.message ? -1 : a.message > b.message;
+          // Ensure messages are stored the same way in both array
+          messages.sort(sort);
+          res.sort(sort);
+          res.should.eql(messages);
         })
         .then(() => done())
         .done();
@@ -577,15 +593,15 @@ describe('DatabaseHandler', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.newFriendship((new ObjectId()).toString(), 'a')
         .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError)
+          err.should.be.instanceOf(errors.ArgumentError);
         })
         .then(() => dbHandler.newFriendship('a', (new ObjectId()).toString()))
         .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         });
-      })
-    })
+      });
+    });
 
     describe('Attempt to create friendship with self', function() {
       var user = null;
@@ -636,7 +652,7 @@ describe('DatabaseHandler', function() {
           done();
         });
       });
-    })
+    });
 
     describe('Get with invalid id', function() {
       it('should return an ArgumentError', function(done) {
@@ -646,7 +662,7 @@ describe('DatabaseHandler', function() {
           done();
         });
       });
-    })
+    });
   });
 
   describe('checkIfFriends', function() {
@@ -682,14 +698,14 @@ describe('DatabaseHandler', function() {
       it('should return an ArgumentError', function(done) {
         dbHandler.checkIfFriends((new ObjectId()).toString(), 'a')
         .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError)
+          err.should.be.instanceOf(errors.ArgumentError);
         })
         .then(() => dbHandler.checkIfFriends('a', (new ObjectId()).toString()))
         .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
           done();
         });
-      })
+      });
     });
   });
 
@@ -741,8 +757,8 @@ describe('DatabaseHandler', function() {
           done();
         })
         .done();
-      })
-    })
+      });
+    });
   });
 
   describe('unfriend', function() {

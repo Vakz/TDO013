@@ -30,7 +30,7 @@ UserSecurity.generateToken = function(length) {
 
 UserSecurity.hash = function(str) {
   return Q.Promise(function(resolve, reject, notify) {
-    if (str.length < 1) reject(new errors.ArgumentError("Cannot hash zero-length string"));
+    if (str.length < 1) reject(new errors.ArgumentError("Invalid password"));
     else {
       Q.ninvoke(bcrypt, "hash", str, config.get('security:passwords:saltRounds'))
       .then(resolve, reject);

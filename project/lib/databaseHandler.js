@@ -2,10 +2,23 @@
 
 var ArgumentError = require('./errors').ArgumentError;
 var DatabaseError = require('./errors').DatabaseError;
+var SemanticsError = require('./errors').SemanticsError;
 var config = require('./config');
 var UserSecurity = require('./userSecurity');
 var Q = require('q');
 var mongodb = require('mongodb');
+
+/*
+ * Deletes empty parameters.
+ */
+var prepareParams = function(params) {
+  Object.keys(params).forEach(function(key) {
+    if (!params[key] || !params[key].trim())
+    {
+      delete params[key];
+    }
+  });
+};
 
 var DatabaseHandler = function() {
   var db = null;
@@ -20,19 +33,6 @@ var DatabaseHandler = function() {
     return collections[collection];
   };
 
-  /*
-   * Deletes empty parameters.
-   */
-  var prepareParams = function(params) {
-    Object.keys(params).forEach(function(key) {
-      if (typeof params[key] !== 'string') return;
-      if (!params[key] || !params[key].trim())
-      {
-        delete params[key];
-      }
-    });
-  };
-
   var generateId = () => (new mongodb.ObjectId()).toString();
 
   var genericUpdateUser = function(id, params) {
@@ -42,7 +42,7 @@ var DatabaseHandler = function() {
       else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError("id is invalid"));
       else {
         getCollection(config.get('database:collections:auth')).updateOne({_id: id}, {$set: params})
-        .then((doc) => { if (!doc.result.n) throw new ArgumentError("No user updated"); })
+        .then((doc) => { if (!doc.result.n) throw new SemanticsError("No user updated"); })
         .then(() => scope.getUser({_id: id}))
         .then((doc) => resolve(doc))
         .catch(reject);
@@ -108,7 +108,7 @@ var DatabaseHandler = function() {
         // https://gist.github.com/Vakz/77b59958973ad49785b9
         scope.getUser({username: params.username})
         .then(function(doc) {
-          if (doc) throw new ArgumentError("Username already taken");
+          if (doc) throw new SemanticsError("Username already taken");
         })
         .then(() => params._id = generateId())
         .then(() => UserSecurity.generateToken(config.get('security:sessions:tokenLength')))
@@ -147,7 +147,7 @@ var DatabaseHandler = function() {
         .then((res) => genericUpdateUser(id, {token: res}))
         .then((res) => resolve(res.token))
         .catch(function(err) {
-          if (err instanceof ArgumentError) reject(new ArgumentError("No user with id " + id));
+          if (err instanceof ArgumentError || err instanceof SemanticsError) reject(err);
           // If error is not an ArgumentError, it's likely something thrown from mongodb. Pass it on.
           else throw (err);
         })
@@ -194,7 +194,7 @@ var DatabaseHandler = function() {
       else {
         scope.getManyById([from, to])
         .then(function(res) {
-          if (res.length !== 2 || res.some((doc) => !doc)) throw new ArgumentError("User not found");
+          if (res.length !== 2 || res.some((doc) => !doc)) throw new SemanticsError("User not found");
         })
         .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new ArgumentError('Message cannot be empty'); })
         .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId(), time: Date.now()}; })
@@ -315,3 +315,7 @@ var DatabaseHandler = function() {
 };
 
 module.exports = DatabaseHandler;
+/* istanbul ignore else */
+if (process.env.NODE_ENV === 'test') {
+  module.exports._private = { prepareParams: prepareParams };
+}
