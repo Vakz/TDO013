@@ -1,6 +1,6 @@
 "use strict";
 
-var util = require('util');
+let util = require('util');
 
 function ArgumentError(message) {
   this.message = message;

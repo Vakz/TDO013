@@ -1,17 +1,19 @@
+"use strict"
+
 process.env.NODE_ENV = 'test';
 
-var ArgumentError = require('./errors').ArgumentError;
-var DatabaseError = require('./errors').DatabaseError;
-var SemanticsError = require('./errors').SemanticsError;
-var DatabaseHandler = require('./databaseHandler');
-var UserSecurity = require('./userSecurity');
-var config = require('./config');
-var strings = require('./strings');
+let ArgumentError = require('./errors').ArgumentError;
+let DatabaseError = require('./errors').DatabaseError;
+let SemanticsError = require('./errors').SemanticsError;
+let DatabaseHandler = require('./databaseHandler');
+let UserSecurity = require('./userSecurity');
+let config = require('./config');
+let strings = require('./strings');
 
-var Q = require('q');
-var sanitizer = require('sanitizer');
+let Q = require('q');
+let sanitizer = require('sanitizer');
 
-var errorHandler = function(response, err) {
+let errorHandler = function(response, err) {
   if (err instanceof ArgumentError) {
     response.status(400).send(err.message);
   }
@@ -26,9 +28,9 @@ var errorHandler = function(response, err) {
   }
 };
 
-var RequestHandler = function() {
-  dbHandler = new DatabaseHandler();
-  scope = this;
+let RequestHandler = function() {
+  let dbHandler = new DatabaseHandler();
+  let scope = this;
 
   this.connect = function() {
     return dbHandler.connect();
@@ -38,7 +40,7 @@ var RequestHandler = function() {
     dbHandler.close();
   };
 
-  var hasAccess = function(id, req) {
+  let hasAccess = function(id, req) {
     return Q.Promise(function(resolve, reject, notify) {
       if(id === req.session._id) resolve(true);
       else {
@@ -60,7 +62,7 @@ var RequestHandler = function() {
   this.getUsersById = function(req, res) {
     if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamId));
     else {
-      var ids = JSON.parse(req.query.ids);
+      let ids = JSON.parse(req.query.ids);
       if(!Array.isArray(ids)) errorHandler(res, new ArgumentError(strings.invalidIds));
       else {
         dbHandler.getManyById(ids)
@@ -91,7 +93,7 @@ var RequestHandler = function() {
     if (req.session.loggedIn) errorHandler(res, new ArgumentError(strings.alreadyLoggedIn));
     else if (!req.body.username || !req.body.password) errorHandler(res, new ArgumentError(strings.missingParams));
     else {
-      var user = null;
+      let user = null;
       dbHandler.getUser({username: req.body.username})
       .then((_user) => user = _user)
       .then(() => { if (!user) throw new SemanticsError(strings.noUser); })
@@ -131,7 +133,7 @@ var RequestHandler = function() {
     else if(req.body.password.length < config.get('security:passwords:minLength'))
       errorHandler(res, new ArgumentError(strings.passwordTooShort));
     else {
-      var reset = req.body.reset ? true : false;
+      let reset = req.body.reset ? true : false;
       UserSecurity.hash(req.body.password)
       .then(function(pw) {
         dbHandler.updatePassword(req.session._id, pw, reset)
@@ -150,7 +152,7 @@ var RequestHandler = function() {
       .then(() => dbHandler.getUser({_id: req.query.id}))
       .then(function(user) {
         return Q.Promise(function(resolve, reject) {
-          var params = {_id: user._id, username: user.username };
+          let params = {_id: user._id, username: user.username };
           dbHandler.getMessages(user._id)
           .then((messages) => params.messages = messages)
           .then(() => resolve(params), reject);
@@ -187,7 +189,7 @@ var RequestHandler = function() {
     else if(!req.body.message) errorHandler(res, new ArgumentError(strings.noParamMessage));
     else if(req.body.message.length > config.get('messages:maxLength')) errorHandler(res, new SemanticsError(strings.messageTooLong));
     else {
-      var msg = sanitizer.escape(req.body.message);
+      let msg = sanitizer.escape(req.body.message);
       hasAccess(req.body.receiver, req)
       .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
       .catch((err) => errorHandler(res, err))

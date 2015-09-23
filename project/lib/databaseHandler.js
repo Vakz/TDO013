@@ -1,18 +1,18 @@
 "use strict";
 
-var ArgumentError = require('./errors').ArgumentError;
-var DatabaseError = require('./errors').DatabaseError;
-var SemanticsError = require('./errors').SemanticsError;
-var config = require('./config');
-var UserSecurity = require('./userSecurity');
-var Q = require('q');
-var mongodb = require('mongodb');
-var strings = require('./strings');
+let ArgumentError = require('./errors').ArgumentError;
+let DatabaseError = require('./errors').DatabaseError;
+let SemanticsError = require('./errors').SemanticsError;
+let config = require('./config');
+let UserSecurity = require('./userSecurity');
+let Q = require('q');
+let mongodb = require('mongodb');
+let strings = require('./strings');
 
 /*
  * Deletes empty parameters.
  */
-var prepareParams = function(params) {
+let prepareParams = function(params) {
   Object.keys(params).forEach(function(key) {
     if (!params[key] || !params[key].trim())
     {
@@ -21,22 +21,22 @@ var prepareParams = function(params) {
   });
 };
 
-var DatabaseHandler = function() {
-  var db = null;
-  var connected = false;
-  var collections = {};
-  var scope = this; // For usage in callbacks
+let DatabaseHandler = function() {
+  let db = null;
+  let connected = false;
+  let collections = {};
+  let scope = this; // For usage in callbacks
 
-  var getCollection = function(collection) {
+  let getCollection = function(collection) {
     if (!collections.hasOwnProperty(collection)) {
       collections[collection] = db.collection(collection);
     }
     return collections[collection];
   };
 
-  var generateId = () => (new mongodb.ObjectId()).toString();
+  let generateId = () => (new mongodb.ObjectId()).toString();
 
-  var genericUpdateUser = function(id, params) {
+  let genericUpdateUser = function(id, params) {
     return Q.promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
@@ -56,10 +56,10 @@ var DatabaseHandler = function() {
     {
       if (connected) resolve(true);
       else {
-        var address = config.get('database:address') + config.get('database:db');
-        var dbConnect = mongodb.MongoClient.connect(address);
+        let address = config.get('database:address') + config.get('database:db');
+        let dbConnect = mongodb.MongoClient.connect(address);
 
-        var successful = function(_db) {
+        let successful = function(_db) {
           db = _db;
           connected = true;
           resolve(true);
@@ -91,8 +91,8 @@ var DatabaseHandler = function() {
   };
 
   this.registerUser = function(params) {
-    var scope = this;
-    var requiredParams = ['username', 'password'];
+    let scope = this;
+    let requiredParams = ['username', 'password'];
     return Q.Promise(function(resolve, reject, notify) {
       // Make sure all are set
       if (!Object.keys(params).every(s => requiredParams.indexOf(s) >= 0)) {

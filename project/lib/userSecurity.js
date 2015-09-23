@@ -1,11 +1,11 @@
 "use strict";
 
-var config = require('./config');
-var bcrypt = require('bcrypt');
-var errors = require('./errors');
-var Q = require('q');
-var RandExp = require('randexp');
-var UserSecurity = {
+let config = require('./config');
+let bcrypt = require('bcrypt');
+let errors = require('./errors');
+let Q = require('q');
+let RandExp = require('randexp');
+let UserSecurity = {
 
 };
 
@@ -22,7 +22,7 @@ UserSecurity.generateToken = function(length) {
   return Q.Promise(function(resolve, reject, notify) {
     if (length < 1) reject(new errors.ArgumentError("Token length must be at least 1"));
     else {
-      var pattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
+      let pattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
       resolve(new RandExp(pattern).gen());
     }
   });
@@ -50,7 +50,7 @@ UserSecurity.verifyHash = function(str, hash) {
 
 UserSecurity.isValidUsername = function(username) {
   if (username.length < 1 || username.length > config.get('users:usernameMaxLength')) return false;
-  var pattern = new RegExp("^[" + config.get('users:acceptableCharacters') + "]+$");
+  let pattern = new RegExp("^[" + config.get('users:acceptableCharacters') + "]+$");
   return pattern.test(username);
 };
 

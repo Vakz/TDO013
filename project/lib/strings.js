@@ -1,3 +1,5 @@
+"use strict";
+
 var strings = {
   noParamId: "No parameter 'ids'",
   noParamPassword: "Missing parameter 'password'",

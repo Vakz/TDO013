@@ -1,18 +1,18 @@
 "use strict";
 
-var express = require('express');
-var errors = require('./errors');
-var config = require('./config');
-var RequestHandler = require('./requestHandler');
-var clientSessions = require('client-sessions');
-var UserSecurity = require('./userSecurity');
-var bodyParser = require('body-parser');
+let express = require('express');
+let errors = require('./errors');
+let config = require('./config');
+let RequestHandler = require('./requestHandler');
+let clientSessions = require('client-sessions');
+let UserSecurity = require('./userSecurity');
+let bodyParser = require('body-parser');
 
-var SocialServer = function(){
+let SocialServer = function(){
 
-  var app = express();
-  var requestHandler = new RequestHandler();
-  var sessionsSettings = UserSecurity.getSessionOptions();
+  let app = express();
+  let requestHandler = new RequestHandler();
+  let sessionsSettings = UserSecurity.getSessionOptions();
 
   setupMiddleware();
   setupRoutes();
