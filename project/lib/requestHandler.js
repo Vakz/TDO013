@@ -36,6 +36,17 @@ var RequestHandler = function() {
     dbHandler.close();
   };
 
+  var hasAccess = function(id, req) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if(id === req.session._id) resolve(true);
+      else {
+        dbHandler.checkIfFriends(id, req.session._id)
+        .then(resolve)
+        .catch(reject);
+      }
+    });
+  };
+
   this.checkToken = function(token, id) {
     return Q.Promise(function(resolve, reject, notify) {
       dbHandler.getUser({_id: id})
@@ -81,7 +92,7 @@ var RequestHandler = function() {
       var user = null;
       dbHandler.getUser({username: req.body.username})
       .then((_user) => user = _user)
-      .then(() => { if (!user) errorHandler(res, new SemanticsError("User does not exist")); })
+      .then(() => { if (!user) throw new SemanticsError("User does not exist"); })
       .then(() => UserSecurity.verifyHash(req.body.password, user.password))
       .then((res) => { if (!res) throw new SemanticsError("Incorrect password"); })
       .then(function() {
@@ -130,13 +141,27 @@ var RequestHandler = function() {
 
   this.getProfile = function(req, res) {
     if (!req.session.loggedIn) errorHandler(res, new ArgumentError("User not logged in"));
-    else if (!req.body.id) errorHandler(res, new ArgumentError("Missing parameter 'id'"));
+    else if (!req.query.id) errorHandler(res, new ArgumentError("Missing parameter 'id'"));
     else {
-      var access = req.body.id === req.session._id;
-      if (!access) {
-        dbHandler.checkIfFriends(req.session._id)
-        .then((res) => access = res);
-      }
+      hasAccess(req.query.id, req)
+      .then((res) => { if (!res) throw new ArgumentError("User is not friend with target user"); })
+      .then(() => dbHandler.getUser({_id: req.query.id}))
+      .then(function(user) {
+        return Q.Promise(function(resolve, reject) {
+          var params = {_id: user._id, username: user.username };
+          dbHandler.getMessages(user._id)
+          .then((messages) => params.messages = messages)
+          .then(() => resolve(params), reject);
+        });
+      })
+      .then(function(result) {
+        dbHandler.getMessages(result._id)
+        .then((messages) => result.messages = messages);
+        return result;
+      })
+      .then((result) => res.status(200).json(result))
+      .catch((err) => errorHandler(res, err))
+      .done();
     }
   };
 };

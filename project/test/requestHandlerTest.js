@@ -269,7 +269,7 @@ describe('RequestHandler', function() {
         .then(() => done());
       });
 
-      it('should return 522', function(done) {
+      it('should return 422', function(done) {
         var req = httpMocks.createRequest({method: 'POST', url: '/login',
         body: {username: 'usname', password: 'incorrect'}});
 
@@ -416,7 +416,7 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 200 and token should remain the same', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions',
+        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
         body: {password: 'anewgoodpassword', reset: false}});
         var res = setupResponse(function(data) {
 
@@ -442,7 +442,7 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 200 and token should remain the same', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions',
+        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
         body: {password: 'anewgoodpassword', reset: true}});
         var res = setupResponse(function(data) {
 
@@ -458,7 +458,7 @@ describe('RequestHandler', function() {
 
     describe('update password to too short word', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions',
+        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
         body: {password: 'short'}});
         var res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
@@ -471,7 +471,7 @@ describe('RequestHandler', function() {
 
     describe('update password without specifying new password', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
+        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
         var res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
@@ -480,6 +480,123 @@ describe('RequestHandler', function() {
         reqHandler.updatePassword(req, res);
       });
     });
+
+    describe('Attempt to update when not logged in', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        req.session = {};
+        reqHandler.updatePassword(req, res);
+      });
+    });
   });
+
+  describe('getProfile', function() {
+    describe('Get valid profile', function() {
+      var users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should find the correct user and its messages', function(done) {
+        var req = httpMocks.createRequest({method: 'GET', url: '/getProfile?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).messages[0].message.should.equal('hello');
+          done();
+        });
+        reqHandler.getProfile(req, res);
+      });
+    });
+
+    describe('Attempt to get without being friends', function() {
+      var users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method: 'GET', url: '/getProfile?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.getProfile(req, res);
+      });
+    });
+
+    describe('Attempt to get without specifying parameter', function(done) {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
+        req.session = {loggedIn: true};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.getProfile(req, res);
+      });
+    });
+
+    describe('Attempt to get without being logged in', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
+        req.session = {};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.getProfile(req, res);
+      });
+    });
+
+    describe('Get own profile', function() {
+      var users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'hello'))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and correct message', function(done) {
+        var req = httpMocks.createRequest({method:'GET', url:'/getProfile?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[1]._id, username: users[1].username};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).messages[0].message.should.equal('hello');
+          done();
+        });
+        reqHandler.getProfile(req, res);
+      });
+    });
+  });
+
   after((done) => {reqHandler.close(); done(); } );
 });
