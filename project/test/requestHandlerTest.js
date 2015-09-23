@@ -11,6 +11,9 @@ var ArgumentError = require('../lib/errors').ArgumentError;
 var DatabaseError = require('../lib/errors').DatabaseError;
 var UserSecurity = require('../lib/userSecurity');
 var sessions = require('client-sessions');
+var ObjectId = require('mongodb').ObjectId;
+var RandExp = require('randexp');
+var strings = require('../lib/strings');
 
 var setupResponse = function(done) {
   var response = httpMocks.createResponse(
@@ -623,7 +626,7 @@ describe('RequestHandler', function() {
       });
     });
 
-    describe.skip('Make valid search', function() {
+    describe('Make valid search', function() {
       var users = null;
       before(function(done) {
         Q.all([
@@ -632,15 +635,102 @@ describe('RequestHandler', function() {
           dbHandler.registerUser({username: 'notCorrect', password: 'pw'})
         ])
         .then((res) => users = res)
+        .then(() => done())
         .done();
       });
 
       after(cleanDb);
 
-      it('should return 200 and correct two users', function() {
+      it('should return 200 and correct two users', function(done) {
         var req = httpMocks.createRequest({method:'GET', url:'/search?searchword=user'});
         req.session = {loggedIn: true};
-        //var res =
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          data = JSON.parse(data);
+          data.length.should.equal(2);
+          data.should.containDeep([{username: users[0].username, _id: users[0]._id}, {username: users[1].username, _id: users[1]._id}]);
+          done();
+        });
+        reqHandler.search(req, res);
+      });
+    });
+  });
+
+  describe('sendMessage', function() {
+    var makeRequest = (id, msg) => httpMocks.createRequest({method:'POST', url:'/sendMessage',
+                            body: {receiver: id, message: msg}});
+
+    describe('send when not logged in', function() {
+      it('should return 400', function(done) {
+        var req = makeRequest((new ObjectId()).toString(), 'hello');
+        req.session = {};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.sendMessage(req, res);
+      });
+    });
+
+    describe('omit id', function() {
+      it('should return 400', function(done) {
+        var req = makeRequest('', 'hello');
+        req.session = {loggedIn: true};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noParamReceiver);
+          done();
+        });
+        reqHandler.sendMessage(req, res);
+      });
+    });
+
+    describe('omit message', function() {
+      it('should return 400', function(done) {
+        var req = makeRequest((new ObjectId()).toString(), '');
+        req.session = {loggedIn: true};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noParamMessage);
+          done();
+        });
+        reqHandler.sendMessage(req, res);
+      });
+    });
+
+    describe('too long message', function() {
+      it('should return 422', function(done) {
+        var req = makeRequest((new ObjectId()).toString(), (new RandExp(/\w{201}/).gen()));
+        req.session = {loggedIn: true};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(422);
+          done();
+        });
+        reqHandler.sendMessage(req, res);
+      });
+    });
+
+    describe.skip('send message to non-friend', function() {
+      var users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'AuserOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'BuserTwo', password: 'pw'}),
+        ])
+        .then((res) => users = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        var req = makeRequest(users[1]._id, 'hello');
+        req.session = {loggedIn: true, _id: users[0]._id};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noAccess);
+        });
       });
     });
   });

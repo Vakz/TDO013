@@ -31,8 +31,10 @@ nconf.defaults({
   users: {
     acceptableCharacters: "\\w\\d._",
     usernameMaxLength: 10
+  },
+  messages: {
+    maxLength: 200
   }
-
 });
 
 module.exports = nconf;

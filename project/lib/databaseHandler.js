@@ -7,6 +7,7 @@ var config = require('./config');
 var UserSecurity = require('./userSecurity');
 var Q = require('q');
 var mongodb = require('mongodb');
+var strings = require('./strings');
 
 /*
  * Deletes empty parameters.
@@ -38,11 +39,11 @@ var DatabaseHandler = function() {
   var genericUpdateUser = function(id, params) {
     return Q.promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
-      else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError("id is invalid"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
+      else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError(strings.invalidId));
       else {
         getCollection(config.get('database:collections:auth')).updateOne({_id: id}, {$set: params})
-        .then((doc) => { if (!doc.result.n) throw new SemanticsError("No user updated"); })
+        .then((doc) => { if (!doc.result.n) throw new SemanticsError(strings.noUpdated); })
         .then(() => scope.getUser({_id: id}))
         .then((doc) => resolve(doc))
         .catch(reject);
@@ -79,8 +80,8 @@ var DatabaseHandler = function() {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError("Not connected to database"));
-      else if (!Array.isArray(ids)) reject(new ArgumentError("ids should be an array of valid IDs"));
-      else if (ids.some((id) => !mongodb.ObjectId.isValid(id))) reject(new ArgumentError("Invalid IDs"));
+      else if (!Array.isArray(ids)) reject(new ArgumentError(strings.idArrayInvalid));
+      else if (ids.some((id) => !mongodb.ObjectId.isValid(id))) reject(new ArgumentError(strings.invalidIds));
       else {
         getCollection(config.get('database:collections:auth')).find({_id: {$in: ids} }).toArray()
         .then((res) => resolve(res))
@@ -95,20 +96,20 @@ var DatabaseHandler = function() {
     return Q.Promise(function(resolve, reject, notify) {
       // Make sure all are set
       if (!Object.keys(params).every(s => requiredParams.indexOf(s) >= 0)) {
-        reject(new ArgumentError("Only username and password should be specified"));
+        reject(new ArgumentError(strings.registerInvalidParams));
       }
       else if ([params.username, params.password].some(s => !s || typeof s !== 'string' || !s.trim())) {
-        reject(new ArgumentError("Username and hash must be specified"));
+        reject(new ArgumentError(strings.registerMissingParams));
       }
       /* istanbul ignore if */
       else if (!connected) {
-        reject(new DatabaseError("Not connected to database"));
+        reject(new DatabaseError(strings.dbNotConnected));
       }
       else {
         // https://gist.github.com/Vakz/77b59958973ad49785b9
         scope.getUser({username: params.username})
         .then(function(doc) {
-          if (doc) throw new SemanticsError("Username already taken");
+          if (doc) throw new SemanticsError(strings.usernameTaken);
         })
         .then(() => params._id = generateId())
         .then(() => UserSecurity.generateToken(config.get('security:sessions:tokenLength')))
@@ -123,14 +124,14 @@ var DatabaseHandler = function() {
   this.getUser = function(params) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if (!connected) reject(new DatabaseError("Not connected to database"));
+      if (!connected) reject(new DatabaseError(strings.dbNotConnected));
       Q.Promise(function(resolve) {
         prepareParams(params);
         resolve();
       })
       .then(function() {
         if (Object.keys(params).length === 0)
-          throw new ArgumentError("Must specficy at least one parameter");
+          throw new ArgumentError(strings.noParams);
       })
       .then(() => getCollection(config.get('database:collections:auth')).findOne(params))
       .then(resolve)
@@ -141,7 +142,7 @@ var DatabaseHandler = function() {
   this.updateToken = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else {
         UserSecurity.generateToken(config.get('security:sessions:tokenLength'))
         .then((res) => genericUpdateUser(id, {token: res}))
@@ -159,7 +160,7 @@ var DatabaseHandler = function() {
   this.updatePassword = function(id, password, resetToken) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else {
         Q.Promise(function(resolve, reject) {
           if (resetToken) scope.updateToken(id).then(resolve);
@@ -175,9 +176,9 @@ var DatabaseHandler = function() {
     return Q.Promise(function(resolve, reject, notify)
     {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!searchword || typeof searchword !== 'string' || !searchword.trim()) {
-        reject(new ArgumentError('Searchword cannot be empty'));
+        reject(new ArgumentError(strings.emptySearchword));
       }
       else {
         getCollection(config.get('database:collections:auth'))
@@ -190,13 +191,13 @@ var DatabaseHandler = function() {
   this.newMessage = function(from, to, message) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else {
         scope.getManyById([from, to])
         .then(function(res) {
-          if (res.length !== 2 || res.some((doc) => !doc)) throw new SemanticsError("User not found");
+          if (res.length !== 2 || res.some((doc) => !doc)) throw new SemanticsError(strings.noUser);
         })
-        .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new ArgumentError('Message cannot be empty'); })
+        .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new ArgumentError(strings.emptyMessage); })
         .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId(), time: Date.now()}; })
         .then((params) => getCollection(config.get('database:collections:messages')).insertOne(params))
         .then((res) => resolve(res.ops[0]))
@@ -208,7 +209,7 @@ var DatabaseHandler = function() {
   this.getMessages = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(id)) {
         reject(new ArgumentError("Invalid id"));
       }
@@ -223,7 +224,7 @@ var DatabaseHandler = function() {
   this.getFriendships = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(id)) {
         reject(new ArgumentError("Invalid id"));
       }
@@ -239,7 +240,7 @@ var DatabaseHandler = function() {
   this.checkIfFriends = function(first, second) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
         reject(new ArgumentError("Invalid id"));
       }
@@ -258,7 +259,7 @@ var DatabaseHandler = function() {
   this.newFriendship = function(first, second) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
         reject(new ArgumentError("Invalid id"));
       }
@@ -269,7 +270,7 @@ var DatabaseHandler = function() {
         // Sort for easier storage
         if (first > second) first = [second, second = first][0];
         scope.checkIfFriends(first, second)
-        .then((res) => { if (res) throw new ArgumentError("Users are already friends"); })
+        .then((res) => { if (res) throw new ArgumentError(strings.alreadyFriends); })
         .then(() => ({'first': first, 'second': second, _id: generateId()}))
         .then((params) => getCollection(config.get('database:collections:friendships')).insert(params))
         .then((res) => resolve(res.ops[0]))
@@ -281,8 +282,8 @@ var DatabaseHandler = function() {
   this.deleteMessage = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
-      else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError("Invalid id"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
+      else if (!mongodb.ObjectId.isValid(id)) reject(new ArgumentError(strings.invalidId));
       else {
         getCollection(config.get('database:collections:messages'))
         .remove({_id: id})
@@ -297,7 +298,7 @@ var DatabaseHandler = function() {
   this.unfriend = function(first, second) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError("Not connected to database"));
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
         reject(new ArgumentError("Invalid id"));
       }

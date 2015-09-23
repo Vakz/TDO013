@@ -1,6 +1,6 @@
 var Q = require('q');
 var mongodb = require('mongodb');
-var config = require('../lib/config')
+var config = require('../lib/config');
 var db = null;
 var collections = [];
 exports.start = function() {

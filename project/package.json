@@ -16,7 +16,8 @@
     "express": "^4.13.3",
     "mongodb": "^2.0.43",
     "nconf": "^0.7.2",
-    "q": "^1.4.1"
+    "q": "^1.4.1",
+    "sanitizer": "^0.1.2"
   },
   "devDependencies": {
     "node-mocks-http": "^1.4.4",

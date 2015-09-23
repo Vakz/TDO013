@@ -294,8 +294,10 @@ describe('DatabaseHandler', function() {
 
       it('should return the correct user', function(done) {
         dbHandler.getManyById([id])
-        .then((res) => res[0].username.should.equal(uname))
-        .then(() => done())
+        .then(function(res) {
+           res[0].username.should.equal(uname);
+           done();
+         })
         .done();
       });
     });
@@ -321,12 +323,9 @@ describe('DatabaseHandler', function() {
         dbHandler.getManyById(ids)
         .then(function(res) {
           res.length.should.equal(2);
-          res[0]._id.should.equal(users[0]._id);
-          res[0].username.should.equal(users[0].username);
-          res[1]._id.should.equal(users[1]._id);
-          res[1].username.should.equal(users[1].username);
+          res.should.containDeep([users[0], users[1]]);
+          done();
         })
-        .then(() => done())
         .done();
       });
     });
@@ -373,8 +372,8 @@ describe('DatabaseHandler', function() {
         .then(function(res) {
           res._id.should.equal(user._id);
           res.username.should.equal(user.username);
+          done();
         })
-        .then(() => done())
         .done();
       });
     });
@@ -399,9 +398,9 @@ describe('DatabaseHandler', function() {
         dbHandler.searchUsers('user')
         .then(function(res) {
           res.length.should.equal(2);
-          [users[0], users[2]].should.eql(res);
+          res.should.containDeep([users[0], users[2]]);
+          done();
         })
-        .then(() => done())
         .done();
       });
     });
@@ -411,8 +410,8 @@ describe('DatabaseHandler', function() {
         dbHandler.searchUsers('')
         .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
+          done();
         })
-        .then(() => done())
         .done();
       });
     });
@@ -487,8 +486,10 @@ describe('DatabaseHandler', function() {
 
       it('should return an ArgumentError', function(done) {
         dbHandler.newMessage(users[0]._id, users[1]._id, '')
-        .then(null, (err) => err.should.be.instanceOf(errors.ArgumentError))
-        .then(() => done())
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
         .done();
       });
     });
@@ -510,6 +511,7 @@ describe('DatabaseHandler', function() {
         .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'b'))
         .then((res) => messages[messages.length] = res)
         .then(() => done())
+        .catch((err) => done(err))
         .done();
       });
 
@@ -519,13 +521,9 @@ describe('DatabaseHandler', function() {
       it('should return the two messages', function(done) {
         dbHandler.getMessages(users[1]._id)
         .then(function(res) {
-          var sort = (a, b) => a.message < b.message ? -1 : a.message > b.message;
-          // Ensure messages are stored the same way in both array
-          messages.sort(sort);
-          res.sort(sort);
-          res.should.eql(messages);
+          res.should.containDeep(messages);
+          done();
         })
-        .then(() => done())
         .done();
       });
     });
@@ -558,8 +556,10 @@ describe('DatabaseHandler', function() {
 
       it('should work as expected', function(done) {
         dbHandler.newFriendship(users[0]._id, users[1]._id)
-        .then((res) => ObjectId.isValid(res._id).should.be.true())
-        .then(() => done())
+        .then(function(res) {
+          ObjectId.isValid(res._id).should.be.true();
+          done();
+        })
         .done();
       });
     });
@@ -616,8 +616,10 @@ describe('DatabaseHandler', function() {
 
       it('should return ArgumentError', function(done) {
         dbHandler.newFriendship(user._id, user._id)
-        .then(null, (err) => err.should.be.instanceOf(errors.ArgumentError))
-        .then(() => done())
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
         .done();
       });
     });
