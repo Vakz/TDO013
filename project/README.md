@@ -39,9 +39,11 @@ DONE:
 - Login
 - Logout
 - Send new message
-
-TODO:
 - Delete own messages
 - Friend another user
 - Unfriend another user
 - Check if two users are friends
+
+TODO:
+
+- Get a list of all friends

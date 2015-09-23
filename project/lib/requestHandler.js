@@ -15,7 +15,6 @@ let sanitizer = require('sanitizer');
 
 let errorHandler = function(response, err) {
   if (err instanceof ArgumentError) {
-
     response.status(400).send(err.message);
   }
   else if (err instanceof SemanticsError) {
@@ -25,7 +24,6 @@ let errorHandler = function(response, err) {
     response.status(503).send(err.message);
   }
   else {
-    //console.log(err);
     response.status(500).send(err.message);
   }
 };
@@ -198,6 +196,67 @@ let RequestHandler = function() {
       .then((msg) => res.status(200).json(msg))
       .catch((err) => errorHandler(res, err))
       .done();
+    }
+  };
+
+  this.deleteMessage = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    else if (!req.body.messageId) errorHandler(res, new ArgumentError(strings.noParamMessageId));
+    else {
+      dbHandler.getMessage(req.body.messageId)
+      .then(function(msg) {
+        // Make sure message exists and user is allowed to delete it
+        if (!msg) throw new ArgumentError(strings.noMessage);
+        if (msg.to !== req.session._id) throw new ArgumentError(strings.notOwnedMessage);
+        return msg;
+      })
+      .then((msg) => dbHandler.deleteMessage(msg._id))
+      .then(() => res.sendStatus(204))
+      .catch((err) => errorHandler(res, err));
+    }
+  };
+
+  this.addFriend = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    else if (!req.body.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
+    else {
+      dbHandler.newFriendship(req.session._id, req.body.friendId)
+      .then(() => res.sendStatus(204))
+      .catch((err) => errorHandler(res, err));
+    }
+  };
+
+  this.removeFriend = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    else if (!req.body.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
+    else {
+      dbHandler.unfriend(req.session._id, req.body.friendId)
+      .then(function(removed) {
+        if (!removed) throw new ArgumentError(strings.notFriends);
+        else {
+          res.sendStatus(204);
+        }
+      })
+      .catch((err) => errorHandler(res, err));
+    }
+  };
+
+  this.checkIfFriends = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    else if (!req.query.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
+    else {
+      dbHandler.checkIfFriends(req.session._id, req.query.friendId)
+      .then((result) => res.status(200).json({friends: result}))
+      .catch((err) => errorHandler(res, err));
+    }
+  };
+
+  this.getFriends = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    else {
+      dbHandler.getFriendships(req.session._id)
+      .then((friends) => res.status(200).json(friends))
+      .catch((err) => errorHandler(res, err));
     }
   };
 };

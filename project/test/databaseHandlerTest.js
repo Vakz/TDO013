@@ -12,6 +12,7 @@ let DatabaseHandler = require('../lib/databaseHandler');
 let UserSecurity = require('../lib/userSecurity');
 let errors = require('../lib/errors');
 let mongodb = require('mongodb');
+let strings = require('../lib/strings')
 
 describe('DatabaseHandler', function() {
   let helper = require('./helper');
@@ -811,6 +812,43 @@ describe('DatabaseHandler', function() {
         .then(() => dbHandler.unfriend('a', (new ObjectId()).toString()))
         .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        });
+      });
+    });
+  });
+
+  describe('getMessage', function() {
+    describe('Get valid message', function() {
+      let message = null;
+      before("Register two users and create friendship", function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'NotCorrect', password: 'pw'})
+        ])
+        .then((users) => dbHandler.newMessage(users[0]._id, users[1]._id, 'a'))
+        .then((res) => message = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return the message', function(done) {
+        dbHandler.getMessage(message._id)
+        .then(function(m) {
+          m.should.containDeep(message);
+          done();
+        });
+      });
+    });
+
+    describe('Get with invalid id', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.getMessage('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          err.message.should.equal(strings.invalidId);
           done();
         });
       });

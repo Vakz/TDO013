@@ -96,7 +96,7 @@ describe('RequestHandler', function() {
   describe('getUsersById', function() {
     let users = null;
     describe('Make a valid request', function() {
-      before(function() {
+      before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
           dbHandler.registerUser({username: 'userTwo', password: 'pw'})
@@ -761,6 +761,433 @@ describe('RequestHandler', function() {
           done();
         });
         reqHandler.sendMessage(req, res);
+      });
+    });
+  });
+
+  describe('deleteMessage', function() {
+    describe('delete when not logged in', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method:'DELETE', url:'/deleteMessage'});
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notLoggedIn);
+          done();
+        });
+        reqHandler.deleteMessage(req, res);
+      });
+    });
+
+    describe('omit message id', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method:'DELETE', url:'/deleteMessage'});
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noParamMessageId);
+          done();
+        });
+        reqHandler.deleteMessage(req, res);
+      });
+    });
+
+    describe('delete non-existant message', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method:'DELETE', url:'/deleteMessage',
+                  body: {messageId: (new ObjectId()).toString()}});
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noMessage);
+          done();
+        });
+        reqHandler.deleteMessage(req, res);
+      });
+    });
+
+    describe('delete message owned by another user', function() {
+      let users = null;
+      let message = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then((users) => dbHandler.newMessage(users[0]._id, users[1]._id, 'a'))
+        .then((res) => message = res)
+        .then(() => done());
+      });
+
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method:'DELETE', url:'/deleteMessage',
+                  body: { messageId: message._id }});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notOwnedMessage);
+          done();
+        });
+        reqHandler.deleteMessage(req, res);
+      });
+    });
+
+    describe('make valid delete request', function() {
+      let users = null;
+      let message = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then((users) => dbHandler.newMessage(users[0]._id, users[1]._id, 'a'))
+        .then((res) => message = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 204', function(done) {
+        let req = httpMocks.createRequest({method:'DELETE', url:'/deleteMessage',
+                  body: { messageId: message._id }});
+        req.session = {loggedIn: true, _id: users[1]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(204);
+          done();
+        });
+        reqHandler.deleteMessage(req, res);
+      });
+    });
+  });
+
+
+  describe('addFriend', function() {
+    describe('add friend when not logged in', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/addFriend'});
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notLoggedIn);
+          done();
+        });
+        reqHandler.addFriend(req, res);
+      });
+    });
+
+    describe('omit friend id', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/addFriend'});
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noParamFriendId);
+          done();
+        });
+        reqHandler.addFriend(req, res);
+      });
+    });
+
+    describe('attempt to add existing friend', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/addFriend',
+                  body: {friendId: users[1]._id}});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.alreadyFriends);
+          done();
+        });
+        reqHandler.addFriend(req, res);
+      });
+    });
+
+    describe('make valid friendship', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 204', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/addFriend',
+                  body: {friendId: users[1]._id}});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(204);
+          done();
+        });
+        reqHandler.addFriend(req, res);
+      });
+    });
+  });
+
+  describe('removeFriend', function() {
+    describe('remove friend when not logged in', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend'});
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notLoggedIn);
+          done();
+        });
+        reqHandler.removeFriend(req, res);
+      });
+    });
+
+    describe('omit friend id', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend'});
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noParamFriendId);
+          done();
+        });
+        reqHandler.removeFriend(req, res);
+      });
+    });
+
+    describe('remove non-friend', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend',
+                  body: {friendId: users[1]._id}});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notFriends);
+          done();
+        });
+        reqHandler.removeFriend(req, res);
+      });
+    });
+
+    describe('remove valid friend', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 204', function(done) {
+        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend',
+                  body: {friendId: users[1]._id}});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(204);
+          done();
+        });
+        reqHandler.removeFriend(req, res);
+      });
+    });
+  });
+
+  describe('checkIfFriends', function() {
+    describe('check friend when not logged in', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/checkIfFriends'});
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notLoggedIn);
+          done();
+        });
+        reqHandler.checkIfFriends(req, res);
+      });
+    });
+
+    describe('omit friend id', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/checkIfFriends'});
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noParamFriendId);
+          done();
+        });
+        reqHandler.checkIfFriends(req, res);
+      });
+    });
+
+    describe('Check non-existant friend', function() {
+      let user = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'userOne', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/checkIfFriends?friendId=' + (new ObjectId()).toString()});
+        req.session = {loggedIn: true, _id: user._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noUser);
+          done();
+        });
+        reqHandler.checkIfFriends(req, res);
+      });
+    });
+
+    describe('Check valid friend', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/checkIfFriends?friendId=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).friends.should.be.true();
+          done();
+        });
+        reqHandler.checkIfFriends(req, res);
+      });
+    });
+
+    describe('Check valid non-friend', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/checkIfFriends?friendId=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).friends.should.be.false();
+          done();
+        });
+        reqHandler.checkIfFriends(req, res);
+      });
+    });
+  });
+
+  describe('getFriends', function() {
+    describe('check friend when not logged in', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/getFriends'});
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.notLoggedIn);
+          done();
+        });
+        reqHandler.getFriends(req, res);
+      });
+    });
+
+    describe('get empty friendslist', function() {
+      let user = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'userOne', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and an empty list', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/getFriends'});
+        req.session = {loggedIn: true, _id: user._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).should.eql([]);
+          done();
+        });
+        reqHandler.getFriends(req, res);
+      });
+    });
+
+    describe('get populated friendslist', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'}),
+          dbHandler.registerUser({username: 'userThree', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => dbHandler.newFriendship(users[2]._id, users[0]._id))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and an empty list', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/getFriends'});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).length.should.equal(2);
+          done();
+        });
+        reqHandler.getFriends(req, res);
       });
     });
   });

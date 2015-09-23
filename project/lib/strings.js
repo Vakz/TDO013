@@ -5,6 +5,8 @@ var strings = {
   noParamPassword: "Missing parameter 'password'",
   noParamReceiver: "Missing parameter 'receiver'",
   noParamMessage: "Missing parameter 'message'",
+  noParamMessageId: "Missing parameter 'messageId'",
+  noParamFriendId: "Missing parameter 'friendId'",
   messageTooLong: "Message is too long",
   invalidIds: "Invalid ids",
   missingParams: "Missing parameters",
@@ -12,6 +14,7 @@ var strings = {
   notLoggedIn: "User not logged in",
   passwordTooShort: "Password too short",
   noUser: "User does not exist",
+  noMessage: "Message does not exist",
   passwordIncorrect: "Incorrect password",
   noAccess: "User does not have access to target user",
   dbNotConnected: "Not connected to database",
@@ -24,7 +27,10 @@ var strings = {
   noParams: "Must specify at least one parameter",
   emptySearchword: "Searchword cannot be empty",
   emptyMessage: "Message cannot be empty",
-  alreadyFriends: "Users are already friends"
+  alreadyFriends: "Users are already friends",
+  notOwnedMessage: "Cannot delete message owned by another user",
+  duplicateIds: "Both ids cannot be the same",
+  notFriends: "Not friends with target user"
 };
 
 Object.freeze(strings);

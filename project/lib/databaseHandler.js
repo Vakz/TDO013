@@ -206,12 +206,26 @@ let DatabaseHandler = function() {
     });
   };
 
+  this.getMessage = function(id) {
+    return Q.Promise(function(resolve, reject, notify) {
+      if (!connected) reject(new DatabaseError(strings.dbNotConnected));
+      else if (!mongodb.ObjectId.isValid(id)) {
+        reject(new ArgumentError(strings.invalidId));
+      }
+      else {
+        getCollection(config.get('database:collections:messages')).findOne({_id: id})
+        .then(resolve)
+        .catch(reject);
+      }
+    });
+  };
+
   this.getMessages = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(id)) {
-        reject(new ArgumentError("Invalid id"));
+        reject(new ArgumentError(strings.invalidId));
       }
       else {
         getCollection(config.get('database:collections:messages')).find({to: id}).sort({time: 1}).toArray()
@@ -226,7 +240,7 @@ let DatabaseHandler = function() {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(id)) {
-        reject(new ArgumentError("Invalid id"));
+        reject(new ArgumentError(strings.invalidId));
       }
       else {
         getCollection(config.get('database:collections:friendships'))
@@ -242,14 +256,13 @@ let DatabaseHandler = function() {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
-        reject(new ArgumentError("Invalid id"));
+        reject(new ArgumentError(strings.invalidId));
       }
       else {
         if (first > second) first = [second, second = first][0];
-        getCollection(config.get('database:collections:friendships')).findOne({'first':first, 'second': second})
-        .then(function(res) {
-          return res;
-        })
+        scope.getManyById([first, second])
+        .then((users) => { if (users.length !== 2) throw new ArgumentError(strings.noUser);})
+        .then(() => getCollection(config.get('database:collections:friendships')).findOne({'first':first, 'second': second}))
         .then((res) => resolve(res ? true : false))
         .catch(reject);
       }
@@ -261,10 +274,10 @@ let DatabaseHandler = function() {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
-        reject(new ArgumentError("Invalid id"));
+        reject(new ArgumentError(strings.invalId));
       }
       else if (first === second) {
-        reject(new ArgumentError("Both ids cannot be the same"));
+        reject(new ArgumentError(strings.duplicateIds));
       }
       else {
         // Sort for easier storage
