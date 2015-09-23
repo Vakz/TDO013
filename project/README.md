@@ -14,17 +14,17 @@ When installing Mongodb, libkrb5-dev is required
 
 Required database functionality:
 --------------------------------
-Done
--Register new user
--Get user info (simply fetch all direct info, relevant or not). Filter what is relevant outside database handler.
--Update user token
--Update user password
--Find users based on partial username
--Submit new message on friend page. Requires sender id, reciever id, message text and date
--Get all messages related to a userId
--Get all friends related to a userId
--Unfriend
--Delete message
+DONE
+- Register new user
+- Get user info (simply fetch all direct info, relevant or not). Filter what is relevant outside database handler.
+- Update user token
+- Update user password
+- Find users based on partial username
+- Submit new message on friend page. Requires sender id, reciever id, message text and date
+- Get all messages related to a userId
+- Get all friends related to a userId
+- Unfriend
+- Delete message
 
 Requried requesthandler functionality:
 --------------------------------------
@@ -39,6 +39,7 @@ DONE:
 - Login
 - Logout
 - Send new message
+
 TODO:
 - Delete own messages
 - Friend another user
