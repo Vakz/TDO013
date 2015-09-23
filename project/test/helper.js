@@ -1,11 +1,13 @@
-var Q = require('q');
-var mongodb = require('mongodb');
-var config = require('../lib/config');
-var db = null;
-var collections = [];
+"use strict";
+
+let Q = require('q');
+let mongodb = require('mongodb');
+let config = require('../lib/config');
+let db = null;
+let collections = [];
 exports.start = function() {
   return Q.Promise(function(resolve, reject) {
-    var c = config.get('database:collections');
+    let c = config.get('database:collections');
     Object.keys(c).forEach(function(key) {
       collections[collections.length] = c[key];
     });

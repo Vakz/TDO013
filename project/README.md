@@ -25,3 +25,22 @@ Done
 -Get all friends related to a userId
 -Unfriend
 -Delete message
+
+Requried requesthandler functionality:
+--------------------------------------
+DONE:
+- Register new user
+- Get a user
+- Get usernames of several users by id
+- Update passwords
+- Reset all sessions
+- Search for users based on partial username
+- Get profile with id, username and messages (profile "frontpage")
+- Login
+- Logout
+- Send new message
+TODO:
+- Delete own messages
+- Friend another user
+- Unfriend another user
+- Check if two users are friends

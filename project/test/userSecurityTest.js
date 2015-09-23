@@ -1,19 +1,20 @@
+"use strict";
 require('should');
 
-var config = require('../lib/config');
-var errors = require('../lib/errors');
-var UserSecurity = require('../lib/userSecurity');
-var bcrypt = require('bcrypt');
-var RandExp = require('randexp');
+let config = require('../lib/config');
+let errors = require('../lib/errors');
+let UserSecurity = require('../lib/userSecurity');
+let bcrypt = require('bcrypt');
+let RandExp = require('randexp');
 
 describe('UserSecurity', function() {
 
-  var getPattern = (length) => new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
+  let getPattern = (length) => new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
 
   // Really just for code coverage
   describe('getSessionOptions', function() {
     it('should return an object with options detailed in config', function() {
-      var options = UserSecurity.getSessionOptions();
+      let options = UserSecurity.getSessionOptions();
       options.secret.should.equal(config.get('security:sessions:key'));
       options.duration.should.equal(config.get('security:sessions:sessionDuration'));
       options.activeDuration.should.equal(config.get('security:sessions:activeDuration'));
@@ -44,7 +45,7 @@ describe('UserSecurity', function() {
 
   describe('hash', function() {
     describe('hash simple password', function() {
-      var password = "simplepassword";
+      let password = "simplepassword";
       it('should work as expected', function(done) {
         UserSecurity.hash(password)
         .then(function(hash) {
@@ -66,7 +67,7 @@ describe('UserSecurity', function() {
   describe('verifyHash', function() {
     describe('Verify a hashed password', function() {
       it('should return true', function(done) {
-        var pw = "decentpassword";
+        let pw = "decentpassword";
         UserSecurity.hash(pw)
         .then((hash) => UserSecurity.verifyHash(pw, hash))
         .then((val) => {val.should.be.true(); done(); });
@@ -83,13 +84,13 @@ describe('UserSecurity', function() {
 
 
   describe('isValidUsername', function() {
-    var maxLength = config.get('users:usernameMaxLength');
-    var makePattern = (length) => new RegExp("^[" + config.get('users:acceptableCharacters') + "]{" + length + "}$");
+    let maxLength = config.get('users:usernameMaxLength');
+    let makePattern = (length) => new RegExp("^[" + config.get('users:acceptableCharacters') + "]{" + length + "}$");
 
     describe('Check valid username', function() {
       it('should return true', function(done) {
-        var pattern = makePattern(maxLength);
-        var uname = (new RandExp(pattern)).gen();
+        let pattern = makePattern(maxLength);
+        let uname = (new RandExp(pattern)).gen();
         pattern.test(uname).should.be.true();
         UserSecurity.isValidUsername(uname).should.be.true();
         done();
@@ -105,8 +106,8 @@ describe('UserSecurity', function() {
 
     describe('Check too long username', function() {
       it('should return false', function(done) {
-        var pattern = makePattern(maxLength + 1);
-        var uname = (new RandExp(pattern)).gen();
+        let pattern = makePattern(maxLength + 1);
+        let uname = (new RandExp(pattern)).gen();
         makePattern(maxLength).test(uname).should.be.false();
         UserSecurity.isValidUsername(uname).should.be.false();
         done();
@@ -116,8 +117,8 @@ describe('UserSecurity', function() {
 
     describe('Check invalid characters', function() {
       it('should return false', function(done) {
-        var invalidPattern = new RegExp("^[^(" + config.get('users:acceptableCharacters') + ")]{" + maxLength + "}$");
-        var uname = (new RandExp(invalidPattern)).gen();
+        let invalidPattern = new RegExp("^[^(" + config.get('users:acceptableCharacters') + ")]{" + maxLength + "}$");
+        let uname = (new RandExp(invalidPattern)).gen();
         makePattern(maxLength).test(uname).should.be.false();
         UserSecurity.isValidUsername(uname).should.be.false();
         done();

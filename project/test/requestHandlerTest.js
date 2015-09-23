@@ -1,22 +1,24 @@
+"use strict";
+
 process.env['database:db'] = 'social_website_test';
 process.env.NODE_ENV = 'test';
 require('should');
-var Q = require('q');
+let Q = require('q');
 
-var config = require('../lib/config');
-var DatabaseHandler = require('../lib/databaseHandler');
-var RequestHandler = require('../lib/requestHandler');
-var httpMocks = require('node-mocks-http');
-var ArgumentError = require('../lib/errors').ArgumentError;
-var DatabaseError = require('../lib/errors').DatabaseError;
-var UserSecurity = require('../lib/userSecurity');
-var sessions = require('client-sessions');
-var ObjectId = require('mongodb').ObjectId;
-var RandExp = require('randexp');
-var strings = require('../lib/strings');
+let config = require('../lib/config');
+let DatabaseHandler = require('../lib/databaseHandler');
+let RequestHandler = require('../lib/requestHandler');
+let httpMocks = require('node-mocks-http');
+let ArgumentError = require('../lib/errors').ArgumentError;
+let DatabaseError = require('../lib/errors').DatabaseError;
+let UserSecurity = require('../lib/userSecurity');
+let sessions = require('client-sessions');
+let ObjectId = require('mongodb').ObjectId;
+let RandExp = require('randexp');
+let strings = require('../lib/strings');
 
-var setupResponse = function(done) {
-  var response = httpMocks.createResponse(
+let setupResponse = function(done) {
+  let response = httpMocks.createResponse(
     {'eventEmitter': require('events').EventEmitter,
      'writableStream': require('stream').Writable });
   response.setEncoding('utf8');
@@ -32,18 +34,18 @@ var setupResponse = function(done) {
 };
 
 describe('RequestHandler', function() {
-  var reqHandler = new RequestHandler();
-  var dbHandler = new DatabaseHandler();
-  var helper = require('./helper');
-  var sessionHandler = sessions(UserSecurity.getSessionOptions());
+  let reqHandler = new RequestHandler();
+  let dbHandler = new DatabaseHandler();
+  let helper = require('./helper');
+  let sessionHandler = sessions(UserSecurity.getSessionOptions());
 
-  var cleanDb = function(done) {
+  let cleanDb = function(done) {
     helper.cleanDb()
     .then(done);
   };
 
   before(function(done) {
-    var pattern = /_test$/;
+    let pattern = /_test$/;
     if (!pattern.test(config.get('database:db'))) {
       console.error("DB used for testing should end with '_test'");
       process.exit(1);
@@ -58,8 +60,8 @@ describe('RequestHandler', function() {
   describe('errorHandler', function() {
     describe('Test ArgumentError', function() {
       it('should return 400 and the error message', function(done) {
-        var message = "Generic error message";
-        var res = setupResponse(function(data) {
+        let message = "Generic error message";
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           data.should.equal(message);
           done();
@@ -70,8 +72,8 @@ describe('RequestHandler', function() {
 
     describe('Test DatabaseError', function() {
       it('should return 503 and the error message', function(done) {
-        var message = "Generic database error message";
-        var res = setupResponse(function(data) {
+        let message = "Generic database error message";
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(503);
           data.should.equal(message);
           done();
@@ -82,7 +84,7 @@ describe('RequestHandler', function() {
 
     describe('Test generic error', function() {
       it('should return 500', function(done) {
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(500);
           done();
         });
@@ -92,7 +94,7 @@ describe('RequestHandler', function() {
   });
 
   describe('getUsersById', function() {
-    var users = null;
+    let users = null;
     describe('Make a valid request', function() {
       before(function() {
         Q.all([
@@ -106,12 +108,12 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return the usernames of the two users', function(done) {
-        var ids = [users[0]._id, users[1]._id];
-        var req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
-        var res = setupResponse(function(data) {
+        let ids = [users[0]._id, users[1]._id];
+        let req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           res.getHeader('Content-Type').should.equal('application/json');
-          var expectedData = [
+          let expectedData = [
             {_id: users[0]._id, username: users[0].username},
             {_id: users[1]._id, username: users[1].username}
           ];
@@ -124,9 +126,9 @@ describe('RequestHandler', function() {
 
     describe('Make request with invalid ids', function() {
       it('should return 400', function(done) {
-        var ids = ['a', 'b'];
-        var req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
-        var res = setupResponse(function(data) {
+        let ids = ['a', 'b'];
+        let req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -136,9 +138,9 @@ describe('RequestHandler', function() {
 
     describe('Make request with non-array', function() {
       it('should return 400', function(done) {
-        var ids = 'a';
-        var req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
-        var res = setupResponse(function(data) {
+        let ids = 'a';
+        let req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -148,8 +150,8 @@ describe('RequestHandler', function() {
 
     describe('Make request without parameter', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({'url': '/getUsersById'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({'url': '/getUsersById'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -165,10 +167,10 @@ describe('RequestHandler', function() {
       it('should return 200', function(done) {
         // Not stringifying body as bodyParser is added as middleware on a higher
         // level of the application, and thus is not included yet
-        var req = httpMocks.createRequest({method: 'POST', url: '/register',
+        let req = httpMocks.createRequest({method: 'POST', url: '/register',
         body: {username: 'uname', password: 'decentpassword'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           done();
         });
@@ -179,10 +181,10 @@ describe('RequestHandler', function() {
 
     describe('register with too short password', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/register',
+        let req = httpMocks.createRequest({method: 'POST', url: '/register',
         body: {username: 'uname', password: 'short'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -193,10 +195,10 @@ describe('RequestHandler', function() {
 
     describe('register with missing parameters', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/register',
+        let req = httpMocks.createRequest({method: 'POST', url: '/register',
         body: {username: 'uname'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -213,10 +215,10 @@ describe('RequestHandler', function() {
       });
 
       it('should return 422', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/register',
+        let req = httpMocks.createRequest({method: 'POST', url: '/register',
         body: {username: 'usname', password: 'decentpassword'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(422);
           done();
         });
@@ -237,10 +239,10 @@ describe('RequestHandler', function() {
       });
 
       it('should return 200', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/login',
+        let req = httpMocks.createRequest({method: 'POST', url: '/login',
         body: {username: 'usname', password: 'decentpassword'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           JSON.parse(data).username.should.equal('usname');
           done();
@@ -252,10 +254,10 @@ describe('RequestHandler', function() {
 
     describe('attempt to login with non-existant user', function() {
       it('should return 422', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/login',
+        let req = httpMocks.createRequest({method: 'POST', url: '/login',
         body: {username: 'usname', password: UserSecurity.hash('decentpassword')}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(422);
           done();
         });
@@ -273,10 +275,10 @@ describe('RequestHandler', function() {
       });
 
       it('should return 422', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/login',
+        let req = httpMocks.createRequest({method: 'POST', url: '/login',
         body: {username: 'usname', password: 'incorrect'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(422);
           done();
         });
@@ -287,10 +289,10 @@ describe('RequestHandler', function() {
 
     describe('Attempt to login with missing parameters', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/login',
+        let req = httpMocks.createRequest({method: 'POST', url: '/login',
         body: {username: 'usname'}});
 
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -303,8 +305,8 @@ describe('RequestHandler', function() {
   describe('logout', function() {
     describe('logout valid user', function() {
       it('should return 200', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/logout'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({method: 'POST', url: '/logout'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(204);
           done();
         });
@@ -318,8 +320,8 @@ describe('RequestHandler', function() {
 
     describe('logout without being logged in', function() {
       it('should return an 400', function(done) {
-        var req = httpMocks.createRequest({method: 'POST', url: '/logout'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({method: 'POST', url: '/logout'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -334,8 +336,8 @@ describe('RequestHandler', function() {
   describe('resetSessions', function() {
     describe('try to reset without being logged in', function() {
       it('it should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -347,7 +349,7 @@ describe('RequestHandler', function() {
     });
 
     describe('reset valid user', function() {
-      var user = null;
+      let user = null;
       before(function(done) {
         UserSecurity.hash('decentpassword')
         .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
@@ -358,14 +360,14 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should create a new token and make the old one invalid', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(204);
 
-          var reqLogin = httpMocks.createRequest({method: 'POST', url: '/login',
+          let reqLogin = httpMocks.createRequest({method: 'POST', url: '/login',
           body: {username: 'usname', password: 'decentpassword'}});
 
-          var resLogin = setupResponse(function(data) {
+          let resLogin = setupResponse(function(data) {
             resLogin.statusCode.should.equal(200);
             // Make sure user has a new token
             reqLogin.session.token.should.not.equal(user.token);
@@ -386,7 +388,7 @@ describe('RequestHandler', function() {
 
   describe('checkToken', function() {
     describe('verify users token', function() {
-      var user = null;
+      let user = null;
       before(function(done) {
         UserSecurity.hash('decentpassword')
         .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
@@ -408,7 +410,7 @@ describe('RequestHandler', function() {
 
   describe('updatePassword', function() {
     describe('update password without updating token', function() {
-      var user = null;
+      let user = null;
       before(function(done) {
         UserSecurity.hash('decentpassword')
         .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
@@ -419,9 +421,9 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 200 and token should remain the same', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
+        let req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
         body: {password: 'anewgoodpassword', reset: false}});
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
 
           res.statusCode.should.equal(204);
           dbHandler.getUser({_id: user._id})
@@ -434,7 +436,7 @@ describe('RequestHandler', function() {
     });
 
     describe('update password and update token', function() {
-      var user = null;
+      let user = null;
       before(function(done) {
         UserSecurity.hash('decentpassword')
         .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
@@ -445,9 +447,9 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 200 and token should remain the same', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
+        let req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
         body: {password: 'anewgoodpassword', reset: true}});
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
 
           res.statusCode.should.equal(204);
           dbHandler.getUser({_id: user._id})
@@ -461,9 +463,9 @@ describe('RequestHandler', function() {
 
     describe('update password to too short word', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
+        let req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword',
         body: {password: 'short'}});
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -474,8 +476,8 @@ describe('RequestHandler', function() {
 
     describe('update password without specifying new password', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -486,8 +488,8 @@ describe('RequestHandler', function() {
 
     describe('Attempt to update when not logged in', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
-        var res = setupResponse(function(data) {
+        let req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -499,7 +501,7 @@ describe('RequestHandler', function() {
 
   describe('getProfile', function() {
     describe('Get valid profile', function() {
-      var users = null;
+      let users = null;
       before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -514,9 +516,9 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should find the correct user and its messages', function(done) {
-        var req = httpMocks.createRequest({method: 'GET', url: '/getProfile?id=' + users[1]._id});
+        let req = httpMocks.createRequest({method: 'GET', url: '/getProfile?id=' + users[1]._id});
         req.session = {loggedIn: true, _id: users[0]._id};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           JSON.parse(data).messages[0].message.should.equal('hello');
           done();
@@ -526,7 +528,7 @@ describe('RequestHandler', function() {
     });
 
     describe('Attempt to get without being friends', function() {
-      var users = null;
+      let users = null;
       before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -539,9 +541,9 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method: 'GET', url: '/getProfile?id=' + users[1]._id});
+        let req = httpMocks.createRequest({method: 'GET', url: '/getProfile?id=' + users[1]._id});
         req.session = {loggedIn: true, _id: users[0]._id};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -551,9 +553,9 @@ describe('RequestHandler', function() {
 
     describe('Attempt to get without specifying parameter', function(done) {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
+        let req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
         req.session = {loggedIn: true};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -563,9 +565,9 @@ describe('RequestHandler', function() {
 
     describe('Attempt to get without being logged in', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
+        let req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
         req.session = {};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -574,7 +576,7 @@ describe('RequestHandler', function() {
     });
 
     describe('Get own profile', function() {
-      var users = null;
+      let users = null;
       before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -589,9 +591,9 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 200 and correct message', function(done) {
-        var req = httpMocks.createRequest({method:'GET', url:'/getProfile?id=' + users[1]._id});
+        let req = httpMocks.createRequest({method:'GET', url:'/getProfile?id=' + users[1]._id});
         req.session = {loggedIn: true, _id: users[1]._id, username: users[1].username};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           JSON.parse(data).messages[0].message.should.equal('hello');
           done();
@@ -604,9 +606,9 @@ describe('RequestHandler', function() {
   describe('search', function() {
     describe('search when not logged in', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method:'GET', url:'/search'});
+        let req = httpMocks.createRequest({method:'GET', url:'/search'});
         req.session = {};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -616,9 +618,9 @@ describe('RequestHandler', function() {
 
     describe('search without searchword', function() {
       it('should return 400', function(done) {
-        var req = httpMocks.createRequest({method:'GET', url:'/search'});
+        let req = httpMocks.createRequest({method:'GET', url:'/search'});
         req.session = {loggedIn: true};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -627,7 +629,7 @@ describe('RequestHandler', function() {
     });
 
     describe('Make valid search', function() {
-      var users = null;
+      let users = null;
       before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'AuserOne', password: 'pw'}),
@@ -642,9 +644,9 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 200 and correct two users', function(done) {
-        var req = httpMocks.createRequest({method:'GET', url:'/search?searchword=user'});
+        let req = httpMocks.createRequest({method:'GET', url:'/search?searchword=user'});
         req.session = {loggedIn: true};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           data = JSON.parse(data);
           data.length.should.equal(2);
@@ -657,14 +659,14 @@ describe('RequestHandler', function() {
   });
 
   describe('sendMessage', function() {
-    var makeRequest = (id, msg) => httpMocks.createRequest({method:'POST', url:'/sendMessage',
+    let makeRequest = (id, msg) => httpMocks.createRequest({method:'POST', url:'/sendMessage',
                             body: {receiver: id, message: msg}});
 
     describe('send when not logged in', function() {
       it('should return 400', function(done) {
-        var req = makeRequest((new ObjectId()).toString(), 'hello');
+        let req = makeRequest((new ObjectId()).toString(), 'hello');
         req.session = {};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
         });
@@ -674,9 +676,9 @@ describe('RequestHandler', function() {
 
     describe('omit id', function() {
       it('should return 400', function(done) {
-        var req = makeRequest('', 'hello');
+        let req = makeRequest('', 'hello');
         req.session = {loggedIn: true};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           data.should.equal(strings.noParamReceiver);
           done();
@@ -687,9 +689,9 @@ describe('RequestHandler', function() {
 
     describe('omit message', function() {
       it('should return 400', function(done) {
-        var req = makeRequest((new ObjectId()).toString(), '');
+        let req = makeRequest((new ObjectId()).toString(), '');
         req.session = {loggedIn: true};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           data.should.equal(strings.noParamMessage);
           done();
@@ -700,9 +702,9 @@ describe('RequestHandler', function() {
 
     describe('too long message', function() {
       it('should return 422', function(done) {
-        var req = makeRequest((new ObjectId()).toString(), (new RandExp(/\w{201}/).gen()));
+        let req = makeRequest((new ObjectId()).toString(), (new RandExp(/\w{201}/).gen()));
         req.session = {loggedIn: true};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(422);
           done();
         });
@@ -710,12 +712,12 @@ describe('RequestHandler', function() {
       });
     });
 
-    describe.skip('send message to non-friend', function() {
-      var users = null;
+    describe('send message to non-friend', function() {
+      let users = null;
       before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'AuserOne', password: 'pw'}),
-          dbHandler.registerUser({username: 'BuserTwo', password: 'pw'}),
+          dbHandler.registerUser({username: 'BuserTwo', password: 'pw'})
         ])
         .then((res) => users = res)
         .then(() => done())
@@ -725,12 +727,40 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 400', function(done) {
-        var req = makeRequest(users[1]._id, 'hello');
+        let req = makeRequest(users[1]._id, 'hello');
         req.session = {loggedIn: true, _id: users[0]._id};
-        var res = setupResponse(function(data) {
+        let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           data.should.equal(strings.noAccess);
+          done();
         });
+        reqHandler.sendMessage(req, res);
+      });
+    });
+
+    describe('send valid message', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and the message', function(done) {
+        let req = makeRequest(users[1]._id, 'hello');
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data).should.containDeep({from: users[0]._id, to: users[1]._id, message:'hello'});
+          done();
+        });
+        reqHandler.sendMessage(req, res);
       });
     });
   });

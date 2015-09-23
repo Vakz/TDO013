@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 process.env.NODE_ENV = 'test';
 
@@ -15,6 +15,7 @@ let sanitizer = require('sanitizer');
 
 let errorHandler = function(response, err) {
   if (err instanceof ArgumentError) {
+
     response.status(400).send(err.message);
   }
   else if (err instanceof SemanticsError) {
@@ -24,6 +25,7 @@ let errorHandler = function(response, err) {
     response.status(503).send(err.message);
   }
   else {
+    //console.log(err);
     response.status(500).send(err.message);
   }
 };
@@ -192,6 +194,8 @@ let RequestHandler = function() {
       let msg = sanitizer.escape(req.body.message);
       hasAccess(req.body.receiver, req)
       .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
+      .then(() => dbHandler.newMessage(req.session._id, req.body.receiver, msg))
+      .then((msg) => res.status(200).json(msg))
       .catch((err) => errorHandler(res, err))
       .done();
     }

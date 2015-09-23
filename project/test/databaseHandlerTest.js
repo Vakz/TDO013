@@ -1,31 +1,33 @@
+"use strict";
+
 process.env['database:db'] = 'social_website_test';
 process.env.NODE_ENV = 'test';
 
 require('should');
-var Q = require('q');
-var ObjectId = require('mongodb').ObjectId;
+let Q = require('q');
+let ObjectId = require('mongodb').ObjectId;
 
-var config = require('../lib/config');
-var DatabaseHandler = require('../lib/databaseHandler');
-var UserSecurity = require('../lib/userSecurity');
-var errors = require('../lib/errors');
-var mongodb = require('mongodb');
+let config = require('../lib/config');
+let DatabaseHandler = require('../lib/databaseHandler');
+let UserSecurity = require('../lib/userSecurity');
+let errors = require('../lib/errors');
+let mongodb = require('mongodb');
 
 describe('DatabaseHandler', function() {
-  var helper = require('./helper');
-  var dbHandler = new DatabaseHandler();
-  var length = config.get("security:sessions:tokenLength");
-  var tokenPattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
+  let helper = require('./helper');
+  let dbHandler = new DatabaseHandler();
+  let length = config.get("security:sessions:tokenLength");
+  let tokenPattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
   dbHandler.connect();
 
-  var cleanDb = function(done) {
+  let cleanDb = function(done) {
     helper.cleanDb()
     .then(done);
   };
 
   before(function(done) {
     // Make sure tests are run on test db
-    var pattern = /_test$/;
+    let pattern = /_test$/;
 
     if (!pattern.test(config.get('database:db'))) {
       console.error("DB used for testing should end with '_test'");
@@ -39,7 +41,7 @@ describe('DatabaseHandler', function() {
   describe('prepareParams', function() {
     describe('Delete empty string', function() {
       it('should return the object with the empty key removed', function(done) {
-          var params = {correct: 'correct', toBeRemoved: ''};
+          let params = {correct: 'correct', toBeRemoved: ''};
           DatabaseHandler._private.prepareParams(params);
           params.hasOwnProperty('correct').should.be.true();
           params.hasOwnProperty('toBeRemoved').should.be.false();
@@ -79,7 +81,7 @@ describe('DatabaseHandler', function() {
       });
 
     describe('Attempt to create user with taken username', function() {
-      var username = "uname";
+      let username = "uname";
 
       before(function(done) {
         dbHandler.registerUser({'username': username, password: 'pw'}).then(() => done()).done();
@@ -120,7 +122,7 @@ describe('DatabaseHandler', function() {
 
   describe("getUser", function() {
     describe('Get existing user', function() {
-      var id = null;
+      let id = null;
       after(cleanDb);
 
       before('Create user to find', function(done) {
@@ -168,8 +170,8 @@ describe('DatabaseHandler', function() {
 
   describe("updateToken", function() {
     describe('Update token of existing user', function() {
-      var id = null;
-      var token = null;
+      let id = null;
+      let token = null;
 
       after(cleanDb);
 
@@ -222,9 +224,9 @@ describe('DatabaseHandler', function() {
 
   describe("updatePassword", function() {
     describe("Update password of existing user w/o updating token", function() {
-      var id = null;
-      var password = "adecentpassword";
-      var token = null;
+      let id = null;
+      let password = "adecentpassword";
+      let token = null;
 
       before('Create user to update', function(done) {
         dbHandler.registerUser({username:'uname', 'password':password})
@@ -249,9 +251,9 @@ describe('DatabaseHandler', function() {
     });
 
     describe("Update password and token of existing user", function() {
-      var id = null;
-      var password = "adecentpassword";
-      var token = null;
+      let id = null;
+      let password = "adecentpassword";
+      let token = null;
 
       before(function(done) {
         dbHandler.registerUser({username: 'uname', password: 'pw'})
@@ -281,8 +283,8 @@ describe('DatabaseHandler', function() {
 
   describe('getManyById', function() {
     describe('Get single user', function() {
-      var id = null;
-      var uname = 'username';
+      let id = null;
+      let uname = 'username';
 
       before(function(done) {
         dbHandler.registerUser({username: uname, password: 'pw'})
@@ -303,7 +305,7 @@ describe('DatabaseHandler', function() {
     });
 
     describe('Get multiple users', function() {
-      var users = [];
+      let users = [];
 
       before("Register three users", function(done) {
         Q.all([
@@ -319,7 +321,7 @@ describe('DatabaseHandler', function() {
       after(cleanDb);
 
       it('should return the correct two users', function(done) {
-        var ids = [users[0]._id, users[1]._id];
+        let ids = [users[0]._id, users[1]._id];
         dbHandler.getManyById(ids)
         .then(function(res) {
           res.length.should.equal(2);
@@ -343,7 +345,7 @@ describe('DatabaseHandler', function() {
 
     describe('Enter an invalid id', function() {
       it('should return an ArgumentError', function(done) {
-        var ids = [(new ObjectId()).toString(), null];
+        let ids = [(new ObjectId()).toString(), null];
         dbHandler.getManyById(ids)
         .then(null, function(err) {
           err.should.be.instanceOf(errors.ArgumentError);
@@ -356,7 +358,7 @@ describe('DatabaseHandler', function() {
   describe('searchUsers', function() {
     describe('Search for a single user', function() {
 
-      var user = null;
+      let user = null;
 
       before(function(done) {
         dbHandler.registerUser({username: 'usname', password: 'pw'})
@@ -379,7 +381,7 @@ describe('DatabaseHandler', function() {
     });
 
     describe('Search with keyword matching two of three users', function() {
-      var users = [];
+      let users = [];
 
       before("Register three users", function(done) {
         Q.all([
@@ -419,7 +421,7 @@ describe('DatabaseHandler', function() {
 
   describe('newMessage', function() {
     describe('Insert a new valid message', function() {
-      var users = null;
+      let users = null;
       before("Register two users", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -446,7 +448,7 @@ describe('DatabaseHandler', function() {
     });
 
     describe('Attempt to insert messages where one user does not exist', function() {
-      var id = null;
+      let id = null;
       before(function(done) {
         dbHandler.registerUser({username: 'usname', password: 'pw'})
         .then((res) => id = res._id)
@@ -471,7 +473,7 @@ describe('DatabaseHandler', function() {
     });
 
     describe('Attempt to insert empty message', function() {
-      var users = null;
+      let users = null;
       before("Register two users", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -498,8 +500,8 @@ describe('DatabaseHandler', function() {
   describe('getMessages', function() {
 
     describe('Get two messages', function() {
-      var users = null;
-      var messages = null;
+      let users = null;
+      let messages = null;
       before("Register two users and enter two messages", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -541,7 +543,7 @@ describe('DatabaseHandler', function() {
 
   describe('newFriendship', function() {
     describe('Create friendship between two users', function() {
-      var users = null;
+      let users = null;
       before("Register two users and enter two messages", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -565,7 +567,7 @@ describe('DatabaseHandler', function() {
     });
 
     describe('Create friendship between users with existing friendship', function() {
-      var users = null;
+      let users = null;
       before("Register two users and create friendship", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -604,7 +606,7 @@ describe('DatabaseHandler', function() {
     });
 
     describe('Attempt to create friendship with self', function() {
-      var user = null;
+      let user = null;
       before('Register a user', function(done){
         dbHandler.registerUser({username: 'usname', password: 'pw'})
         .then((res) => user = res)
@@ -626,7 +628,7 @@ describe('DatabaseHandler', function() {
   });
 
   describe('getFriendships', function() {
-    var users = null;
+    let users = null;
     describe('Get two friendships', function() {
       before(function(done) {
         Q.all([
@@ -668,6 +670,7 @@ describe('DatabaseHandler', function() {
   });
 
   describe('checkIfFriends', function() {
+    let users = null;
     describe('Create valid friendship', function() {
 
       before("Register two users and create friendship", function(done) {
@@ -713,8 +716,8 @@ describe('DatabaseHandler', function() {
 
   describe('deleteMessage', function() {
     describe('Delete existing message', function() {
-      var users = null;
-      var message = null;
+      let users = null;
+      let message = null;
       before(function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
@@ -765,7 +768,7 @@ describe('DatabaseHandler', function() {
 
   describe('unfriend', function() {
     describe('delete valid friendship', function() {
-      var users = null;
+      let users = null;
       before("Register two users and create friendship", function(done) {
         Q.all([
           dbHandler.registerUser({username: 'userOne', password: 'pw'}),
