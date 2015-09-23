@@ -164,6 +164,17 @@ var RequestHandler = function() {
       .done();
     }
   };
+
+  this.search = function(req, res) {
+    if(!req.session.loggedIn) errorHandler(res, new ArgumentError("User not logged in"));
+    else if(!req.query.searchword) errorHandler(res, new ArgumentError("Missing parameter 'searchword'"));
+    else {
+      dbHandler.searchUsers(req.query.searchword)
+      .then((res) => res.status(200).json(res))
+      .catch((err) => errorHandler(res, err))
+      .done();
+    }
+  };
 };
 
 module.exports = RequestHandler;

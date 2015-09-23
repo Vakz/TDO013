@@ -598,5 +598,52 @@ describe('RequestHandler', function() {
     });
   });
 
+  describe('search', function() {
+    describe('search when not logged in', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method:'GET', url:'/search'});
+        req.session = {};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.search(req, res);
+      });
+    });
+
+    describe('search without searchword', function() {
+      it('should return 400', function(done) {
+        var req = httpMocks.createRequest({method:'GET', url:'/search'});
+        req.session = {loggedIn: true};
+        var res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.search(req, res);
+      });
+    });
+
+    describe.skip('Make valid search', function() {
+      var users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'AuserOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'BuserTwo', password: 'pw'}),
+          dbHandler.registerUser({username: 'notCorrect', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return 200 and correct two users', function() {
+        var req = httpMocks.createRequest({method:'GET', url:'/search?searchword=user'});
+        req.session = {loggedIn: true};
+        //var res =
+      });
+    });
+  });
+
   after((done) => {reqHandler.close(); done(); } );
 });
