@@ -66,6 +66,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.register = function(req, res) {
+    console.log(req);
     if (req.session.loggedIn) errorHandler(res, new ArgumentError(strings.alreadyLoggedIn));
     else if (!req.body.username || !req.body.password) errorHandler(res, new ArgumentError(strings.missingParams));
     else if(req.body.password.length < config.get('security:passwords:minLength'))

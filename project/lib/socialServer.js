@@ -22,21 +22,23 @@ let SocialServer = function(){
   function setupMiddleware() {
     app.use(express.static('static'));
     app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
     app.use(clientSessions(sessionsSettings));
     app.use(function(req, res, next) {
-      console.log("here");
       if (req.session.loggedIn) {
         dbHandler.checkToken(req.session.token, req.session._id)
         .then(function(res) {
           if (!res) req.session.reset();
         })
-        .then(next);
+        .then(next());
+      }
+      else {
+        next();
       }
     });
   }
 
   function setupRoutes() {
-
     app.get('/getUsersById', requestHandler.getUsersById);
 
     app.post('/register', requestHandler.register);
@@ -63,16 +65,17 @@ let SocialServer = function(){
 
     app.get('/getFriends', requestHandler.getFriends);
 
-    app.all('*', function(req, res) {
-      console.log(req);
+    app.use(function(req, res) {
       res.sendStatus(404);
     });
+
   }
 
   this.start = function() {
     if (Number.isInteger(config.get('server:port'))) {
       dbHandler.connect()
-      .then(() => app.listen(config.get('server:port')));
+      .then(() => app.listen(config.get('server:port')))
+      .done();
     }
     else{
       throw new errors.ArgumentError("Port number not an integer");
