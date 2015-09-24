@@ -29,16 +29,8 @@ let errorHandler = function(response, err) {
 };
 
 let RequestHandler = function(dbHandler) {
-  //let dbHandler = dbHandler;
-  let scope = this;
-  /*
-  this.connect = function() {
-    return dbHandler.connect();
-  };
 
-  this.close = function() {
-    dbHandler.close();
-  };*/
+  let scope = this;
 
   let hasAccess = function(id, req) {
     return Q.Promise(function(resolve, reject, notify) {
@@ -66,7 +58,6 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.register = function(req, res) {
-    console.log(req);
     if (req.session.loggedIn) errorHandler(res, new ArgumentError(strings.alreadyLoggedIn));
     else if (!req.body.username || !req.body.password) errorHandler(res, new ArgumentError(strings.missingParams));
     else if(req.body.password.length < config.get('security:passwords:minLength'))
