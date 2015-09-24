@@ -34,8 +34,9 @@ let setupResponse = function(done) {
 };
 
 describe('RequestHandler', function() {
-  let reqHandler = new RequestHandler();
   let dbHandler = new DatabaseHandler();
+  let reqHandler = new RequestHandler(dbHandler);
+
   let helper = require('./helper');
   let sessionHandler = sessions(UserSecurity.getSessionOptions());
 
@@ -52,7 +53,6 @@ describe('RequestHandler', function() {
     }
     helper.start()
     .then(dbHandler.connect)
-    .then(reqHandler.connect)
     .then(() => done())
     .done();
   });
@@ -381,28 +381,6 @@ describe('RequestHandler', function() {
           req.session.token = user.token;
           req.session._id = user._id;
           reqHandler.resetSessions(req, res);
-        });
-      });
-    });
-  });
-
-  describe('checkToken', function() {
-    describe('verify users token', function() {
-      let user = null;
-      before(function(done) {
-        UserSecurity.hash('decentpassword')
-        .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
-        .then((res) => user = res)
-        .then(() => done());
-      });
-
-      after(cleanDb);
-
-      it('should return true', function(done) {
-        reqHandler.checkToken(user.token, user._id)
-        .then(function(res) {
-          res.should.be.true();
-          done();
         });
       });
     });
@@ -946,30 +924,30 @@ describe('RequestHandler', function() {
     });
   });
 
-  describe('removeFriend', function() {
+  describe('unfriend', function() {
     describe('remove friend when not logged in', function() {
       it('should return 400', function(done) {
-        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend'});
+        let req = httpMocks.createRequest({method: 'DELETE', url:'/unfriend'});
         req.session = {};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           data.should.equal(strings.notLoggedIn);
           done();
         });
-        reqHandler.removeFriend(req, res);
+        reqHandler.unfriend(req, res);
       });
     });
 
     describe('omit friend id', function() {
       it('should return 400', function(done) {
-        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend'});
+        let req = httpMocks.createRequest({method: 'DELETE', url:'/unfriend'});
         req.session = {loggedIn: true};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           data.should.equal(strings.noParamFriendId);
           done();
         });
-        reqHandler.removeFriend(req, res);
+        reqHandler.unfriend(req, res);
       });
     });
 
@@ -987,7 +965,7 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 400', function(done) {
-        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend',
+        let req = httpMocks.createRequest({method: 'DELETE', url:'/unfriend',
                   body: {friendId: users[1]._id}});
         req.session = {loggedIn: true, _id: users[0]._id};
         let res = setupResponse(function(data) {
@@ -995,7 +973,7 @@ describe('RequestHandler', function() {
           data.should.equal(strings.notFriends);
           done();
         });
-        reqHandler.removeFriend(req, res);
+        reqHandler.unfriend(req, res);
       });
     });
 
@@ -1014,14 +992,14 @@ describe('RequestHandler', function() {
       after(cleanDb);
 
       it('should return 204', function(done) {
-        let req = httpMocks.createRequest({method: 'POST', url:'/removeFriend',
+        let req = httpMocks.createRequest({method: 'DELETE', url:'/unfriend',
                   body: {friendId: users[1]._id}});
         req.session = {loggedIn: true, _id: users[0]._id};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(204);
           done();
         });
-        reqHandler.removeFriend(req, res);
+        reqHandler.unfriend(req, res);
       });
     });
   });
@@ -1192,5 +1170,5 @@ describe('RequestHandler', function() {
     });
   });
 
-  after((done) => {reqHandler.close(); done(); } );
+  after((done) => {dbHandler.close(); done(); } );
 });

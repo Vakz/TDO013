@@ -121,6 +121,28 @@ describe('DatabaseHandler', function() {
 
   });
 
+  describe('checkToken', function() {
+    describe('verify users token', function() {
+      let user = null;
+      before(function(done) {
+        UserSecurity.hash('decentpassword')
+        .then((pw) => dbHandler.registerUser({username: 'usname', password: pw}))
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return true', function(done) {
+        dbHandler.checkToken(user.token, user._id)
+        .then(function(res) {
+          res.should.be.true();
+          done();
+        });
+      });
+    });
+  });
+
   describe("getUser", function() {
     describe('Get existing user', function() {
       let id = null;

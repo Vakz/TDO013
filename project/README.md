@@ -43,7 +43,4 @@ DONE:
 - Friend another user
 - Unfriend another user
 - Check if two users are friends
-
-TODO:
-
 - Get a list of all friends

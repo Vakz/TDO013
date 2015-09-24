@@ -7,11 +7,13 @@ let RequestHandler = require('./requestHandler');
 let clientSessions = require('client-sessions');
 let UserSecurity = require('./userSecurity');
 let bodyParser = require('body-parser');
+let DatabaseHandler = require('./databaseHandler');
 
 let SocialServer = function(){
 
   let app = express();
-  let requestHandler = new RequestHandler();
+  let dbHandler = new DatabaseHandler();
+  let requestHandler = new RequestHandler(dbHandler);
   let sessionsSettings = UserSecurity.getSessionOptions();
 
   setupMiddleware();
@@ -22,8 +24,9 @@ let SocialServer = function(){
     app.use(bodyParser.json());
     app.use(clientSessions(sessionsSettings));
     app.use(function(req, res, next) {
+      console.log("here");
       if (req.session.loggedIn) {
-        requestHandler.checkToken(req.session.token, req.session._id)
+        dbHandler.checkToken(req.session.token, req.session._id)
         .then(function(res) {
           if (!res) req.session.reset();
         })
@@ -33,16 +36,42 @@ let SocialServer = function(){
   }
 
   function setupRoutes() {
+
     app.get('/getUsersById', requestHandler.getUsersById);
 
+    app.post('/register', requestHandler.register);
+
+    app.post('/login', requestHandler.login);
+
+    app.post('/logout', requestHandler.logout);
+
+    app.put('/resetSessions', requestHandler.resetSessions);
+
+    app.put('/updatePassword', requestHandler.updatePassword);
+
+    app.get('/getProfile', requestHandler.getProfile);
+
+    app.get('/search', requestHandler.search);
+
+    app.post('/sendMessage', requestHandler.sendMessage);
+
+    app.delete('/deleteMessage', requestHandler.deleteMessage);
+
+    app.delete('/unfriend', requestHandler.unfriend);
+
+    app.get('/checkIfFriends', requestHandler.checkIfFriends);
+
+    app.get('/getFriends', requestHandler.getFriends);
+
     app.all('*', function(req, res) {
+      console.log(req);
       res.sendStatus(404);
     });
   }
 
   this.start = function() {
     if (Number.isInteger(config.get('server:port'))) {
-      requestHandler.connect()
+      dbHandler.connect()
       .then(() => app.listen(config.get('server:port')));
     }
     else{

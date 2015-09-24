@@ -76,6 +76,14 @@ let DatabaseHandler = function() {
     db = null;
   };
 
+  this.checkToken = function(token, id) {
+    return Q.Promise(function(resolve, reject, notify) {
+      scope.getUser({_id: id})
+      .then((user) => resolve(user.token === token, reject))
+      .catch(reject);
+    });
+  };
+
   this.getManyById = function(ids) {
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */

@@ -5,7 +5,7 @@ process.env.NODE_ENV = 'test';
 let ArgumentError = require('./errors').ArgumentError;
 let DatabaseError = require('./errors').DatabaseError;
 let SemanticsError = require('./errors').SemanticsError;
-let DatabaseHandler = require('./databaseHandler');
+
 let UserSecurity = require('./userSecurity');
 let config = require('./config');
 let strings = require('./strings');
@@ -28,17 +28,17 @@ let errorHandler = function(response, err) {
   }
 };
 
-let RequestHandler = function() {
-  let dbHandler = new DatabaseHandler();
+let RequestHandler = function(dbHandler) {
+  //let dbHandler = dbHandler;
   let scope = this;
-
+  /*
   this.connect = function() {
     return dbHandler.connect();
   };
 
   this.close = function() {
     dbHandler.close();
-  };
+  };*/
 
   let hasAccess = function(id, req) {
     return Q.Promise(function(resolve, reject, notify) {
@@ -48,14 +48,6 @@ let RequestHandler = function() {
         .then(resolve)
         .catch(reject);
       }
-    });
-  };
-
-  this.checkToken = function(token, id) {
-    return Q.Promise(function(resolve, reject, notify) {
-      dbHandler.getUser({_id: id})
-      .then((user) => resolve(user.token === token, reject))
-      .catch(reject);
     });
   };
 
@@ -226,7 +218,7 @@ let RequestHandler = function() {
     }
   };
 
-  this.removeFriend = function(req, res) {
+  this.unfriend = function(req, res) {
     if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
     else if (!req.body.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
     else {
