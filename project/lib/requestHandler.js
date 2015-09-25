@@ -44,7 +44,8 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.getUsersById = function(req, res) {
-    if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamId));
+    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    else if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamId));
     else {
       let ids = JSON.parse(req.query.ids);
       if(!Array.isArray(ids)) errorHandler(res, new ArgumentError(strings.invalidIds));

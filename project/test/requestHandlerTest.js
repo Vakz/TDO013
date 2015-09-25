@@ -110,6 +110,7 @@ describe('RequestHandler', function() {
       it('should return the usernames of the two users', function(done) {
         let ids = [users[0]._id, users[1]._id];
         let req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
+        req.session = {loggedIn: true};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(200);
           res.getHeader('Content-Type').should.equal('application/json');
@@ -128,6 +129,7 @@ describe('RequestHandler', function() {
       it('should return 400', function(done) {
         let ids = ['a', 'b'];
         let req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
+        req.session = {loggedIn: true};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
@@ -140,6 +142,7 @@ describe('RequestHandler', function() {
       it('should return 400', function(done) {
         let ids = 'a';
         let req = httpMocks.createRequest({'url': '/getUsersById?ids=' + JSON.stringify(ids)});
+        req.session = {loggedIn: true};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
@@ -151,6 +154,7 @@ describe('RequestHandler', function() {
     describe('Make request without parameter', function() {
       it('should return 400', function(done) {
         let req = httpMocks.createRequest({'url': '/getUsersById'});
+        req.session = {loggedIn: true};
         let res = setupResponse(function(data) {
           res.statusCode.should.equal(400);
           done();
