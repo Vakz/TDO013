@@ -4,24 +4,19 @@
     <meta charset="utf-8">
     <title>Social website</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.5/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.5/angular-animate.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.4/ui-bootstrap-tpls.min.js"></script>
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/angular-animate/angular-animate.min.js"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="bower_components/angular-route/angular-route.min.js"></script>
     <script src="js/socialApplication.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bower_components/normalize-css/normalize.css">
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
   </head>
   <body>
-    <div ng-controller="AlertDemoCtrl">
-      <script type="text/ng-template" id="alert.html">
-        <div class="hello" role="hello">
-          <div ng-transclude></div>
-          </div>
-        </div>
-      </script>
-
-      <hello ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.msg}}</hello>
-      <hello template-url="alert.html">A happy alert!</hello>
-      <button type="button" class="btn btn-default" ng-click="addAlert()">Add alert</button>
+    <div class="container" ng-controller="templateController">
+      <div id="header" class="col-xs-12">
+        <h1>username</h1>
+      </div>
     </div>
   </body>
 </html>

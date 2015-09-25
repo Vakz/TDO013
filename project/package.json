@@ -17,12 +17,17 @@
     "mongodb": "^2.0.43",
     "nconf": "^0.7.2",
     "q": "^1.4.1",
-    "sanitizer": "^0.1.2"
+    "sanitizer": "^0.1.2",
+    "bower": "^1.5.3"
   },
   "devDependencies": {
     "node-mocks-http": "^1.4.4",
     "randexp": "^0.4.0",
     "should": "^7.1.0",
     "superagent": "^1.4.0"
+  },
+  "scripts":
+  {
+    "postinstall": "bower install"
   }
 }

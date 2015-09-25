@@ -2,8 +2,9 @@
 
 ### General design principle
 - ✗ For template, show search bar in top right
-- ✗ In top left, either show username (link to profile) or login-fields and register-link
+- ✗ In top left, either show username (link to profile)
 - ✗ When logged in, save id, username and simple "logged in"-variable in local storage
+- ✗ Redirect to login if not logged in
 - ✗ Default to own profile after logging in, or entering /profile without id
 - ✗ Link to options
 

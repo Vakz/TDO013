@@ -1,0 +1,29 @@
+{
+  "name": "social_website",
+  "main": "index.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/Vakz/TDP013",
+  "authors": [
+    "Fredrik Jonsén <fredrikjonsen@gmail.com>"
+  ],
+  "description": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "static/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-animate": "~1.4.6",
+    "angular": "~1.4.6",
+    "angular-bootstrap": "~0.13.4",
+    "angular-route": "~1.4.6",
+    "normalize-css": "normalize.css#~3.0.3",
+    "bootstrap": "~3.3.5"
+  }
+}
