@@ -1,23 +1,23 @@
 # Frontend
 
 ### General design principle
-✗ For template, show search bar in top right
-✗ In top left, either show username (link to profile) or login-fields and register-link
-✗ When logged in, save id, username and simple "logged in"-variable in local storage
-✗ Default to own profile after logging in, or entering /profile without id
-✗ Link to options
+- ✗ For template, show search bar in top right
+- ✗ In top left, either show username (link to profile) or login-fields and register-link
+- ✗ When logged in, save id, username and simple "logged in"-variable in local storage
+- ✗ Default to own profile after logging in, or entering /profile without id
+- ✗ Link to options
 
 #### Options
-✗ Change password
-✗ Log out everywhere (reset token)
+- ✗ Change password
+- ✗ Log out everywhere (reset token)
 
 ### Profiles
-✗ Tabs for showing messages or showing friends (eventually add showing images)
-✗ Show input at the top for writing a new message. Show preview. (only on message tab)
-✗ At the top of content box, show username. Next to username, show "Add to friends" or "You are friends" if not self.
+- ✗ Tabs for showing messages or showing friends (eventually add showing images)
+- ✗ Show input at the top for writing a new message. Show preview. (only on message tab)
+- ✗ At the top of content box, show username. Next to username, show "Add to friends" or "You are friends" if not self.
 
 ### Search
-✗ Repurpose friendslist (write directive?)
+- ✗ Repurpose friendslist (write directive?)
 
 
 # Backend
