@@ -2,21 +2,42 @@
 <html ng-app="socialApplication">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Social website</title>
 
     <script src="bower_components/angular/angular.min.js"></script>
     <script src="bower_components/angular-animate/angular-animate.min.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
     <script src="bower_components/angular-route/angular-route.min.js"></script>
+    <script src="bower_components/ngstorage/ngStorage.min.js"></script>
     <script src="js/socialApplication.js"></script>
+    <script src="js/controllers.js"></script>
     <link rel="stylesheet" href="bower_components/normalize-css/normalize.css">
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/template.css">
   </head>
   <body>
     <div class="container" ng-controller="templateController">
-      <div id="header" class="col-xs-12">
-        <h1>username</h1>
+      <div class="row" id="header">
+        <div ng-controller="DropdownCtrl" class="alignHeader btn-group col-xs-4 col-sm-1" dropdown is-open="status.isopen">
+          <button ng-show="loggedIn" type="button" class="btn btn-primary" dropdown-toggle>Options <span class="caret"></span></button>
+          <ul class="dropdown-menu" role="menu">
+            <li role="menuitem"><a href="#/options">Settings</a></li>
+            <li role="menuitem"><a href="#/logout">Log out</a></li>
+          </ul>
+        </div>
+        <h3 class="col-xs-6 col-sm-6">
+          <a href="{{_id}}">{{username}}</a></h3>
+        <form ng-show="loggedIn" id="searchform" class="alignHeader form-inline" class="col-xs-4 col-sm-4">
+          <div class="form-group">
+            <label class="sr-only" for="searchinput">Search</label>
+            <input id="searchinput" type="search" class="form-control" placeholder="Search">
+          </div>
+        </form>
       </div>
+    </div>
+    <div ng-view class="col-xs-12" id="content">
+
     </div>
   </body>
 </html>

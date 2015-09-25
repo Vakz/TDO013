@@ -1,3 +1,3 @@
 "use strict";
 
-var app = angular.module('socialApplication', ['ngRoute', 'ui.bootstrap']);
+var app = angular.module('socialApplication', ['ngRoute', 'ui.bootstrap', 'socialSiteControllers']);
