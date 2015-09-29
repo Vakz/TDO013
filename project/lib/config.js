@@ -28,7 +28,7 @@ nconf.defaults({
     }
   },
   server: {
-    port: 8888
+    port: 45555
   },
   users: {
     acceptableCharacters: "\\w\\d._",

@@ -6,19 +6,23 @@
 - ✓ When logged in, save id, username and simple "logged in"-variable in local storage
 - ✗ Redirect to login if not logged in
 - ✗ Default to own profile after logging in, or entering /profile without id
+- ✗ When searching, get suggestions in a dropdown list (use debounce)
 - ✓ Button to options
 
 #### Options
 - ✗ Change password
 - ✗ Log out everywhere (reset token)
 
-### Profiles
+#### Profiles
 - ✗ Tabs for showing messages or showing friends (eventually add showing images)
 - ✗ Show input at the top for writing a new message. Show preview. (only on message tab)
 - ✗ At the top of content box, show username. Next to username, show "Add to friends" or "You are friends" if not self.
 
-### Search
+#### Search
 - ✗ Repurpose friendslist (write directive?)
+
+#### Registration
+- ✗ Check with backend if username is available
 
 
 # Backend

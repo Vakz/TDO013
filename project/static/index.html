@@ -17,18 +17,18 @@
     <link rel="stylesheet" href="css/template.css">
   </head>
   <body>
-    <div class="container" ng-controller="templateController">
+    <div id="container" class="container" ng-controller="templateController">
       <div class="row" id="header">
         <div ng-controller="DropdownCtrl" class="alignHeader btn-group col-xs-4 col-sm-1" dropdown is-open="status.isopen">
-          <button ng-show="loggedIn" type="button" class="btn btn-primary" dropdown-toggle>Options <span class="caret"></span></button>
+          <button ng-show="$storage.loggedIn" type="button" class="btn btn-primary" dropdown-toggle>Options <span class="caret"></span></button>
           <ul class="dropdown-menu" role="menu">
             <li role="menuitem"><a href="#/options">Settings</a></li>
             <li role="menuitem"><a href="#/logout">Log out</a></li>
           </ul>
         </div>
         <h3 class="col-xs-6 col-sm-6">
-          <a href="{{_id}}">{{username}}</a></h3>
-        <form ng-show="loggedIn" id="searchform" class="alignHeader form-inline" class="col-xs-4 col-sm-4">
+          <a ng-href="{{$storage._id || '/#login'}}">{{$storage.username || 'Not logged in'}}</a></h3>
+        <form ng-show="$storage.loggedIn" id="searchform" class="alignHeader form-inline" class="col-xs-4 col-sm-4">
           <div class="form-group">
             <label class="sr-only" for="searchinput">Search</label>
             <input id="searchinput" type="search" class="form-control" placeholder="Search">

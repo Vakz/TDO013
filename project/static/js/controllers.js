@@ -4,10 +4,7 @@ var app = angular.module('socialSiteControllers', ['ngStorage']);
 
 app.controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
   $localStorage.$reset();
-  $scope.$storage = $localStorage.$default({loggedIn: true});
-  $scope.username = $scope.$storage.username || 'Not logged in';
-  $scope._id = $scope.$storage._id || '#/login';
-  $scope.loggedIn = $scope.$storage.loggedIn || false;
+  $scope.$storage = $localStorage.$default({username: 'hello', loggedIn: true});
 }]);
 
 app.controller('DropdownCtrl', function($scope) {

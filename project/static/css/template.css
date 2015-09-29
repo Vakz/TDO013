@@ -1,3 +1,9 @@
 .alignHeader{
   margin-top: 16px;
 }
+
+body{
+  background: linear-gradient(to right, rgba(225,255,255,1) 0%,rgba(230,248,253,1) 30%,rgba(200,238,251,1) 54%,rgba(190,228,248,1) 75%,rgba(177,216,245,1) 100%);
+  /*background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);*/
+}
+}
