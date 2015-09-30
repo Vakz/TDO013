@@ -3,9 +3,9 @@
 angular.module('socialSiteControllers', ['ngStorage'])
 .controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
   $localStorage.$reset();
-  $scope.$storage = $localStorage.$default({username: 'hello', loggedIn: true});
+  $scope.$storage = $localStorage.$default({});
 }])
-.controller('DropdownCtrl', function($scope) {
+.controller('DropdownCtrl', ["$scope", function($scope) {
   $scope.status = {
     isopen: false
   };
@@ -19,4 +19,4 @@ angular.module('socialSiteControllers', ['ngStorage'])
     $event.stopPropagation();
     $scope.status.isopen = !$scope.status.isopen;
   };
-});
+}]);

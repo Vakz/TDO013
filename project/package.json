@@ -6,7 +6,9 @@
   "scripts": {
     "postinstall": "bower install",
 
-    "karma": "karma start test/karma.conf.js"
+    "karma": "karma start test/karma.conf.js",
+
+    "protractor": "protractor test/protractor.conf.js"
   },
   "author": "",
   "license": "ISC",
