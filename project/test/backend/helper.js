@@ -2,7 +2,7 @@
 
 let Q = require('q');
 let mongodb = require('mongodb');
-let config = require('../lib/config');
+let config = require('../../lib/config');
 let db = null;
 let collections = [];
 exports.start = function() {

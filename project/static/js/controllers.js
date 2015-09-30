@@ -1,13 +1,11 @@
 "use strict";
 
-var app = angular.module('socialSiteControllers', ['ngStorage']);
-
-app.controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
+angular.module('socialSiteControllers', ['ngStorage'])
+.controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
   $localStorage.$reset();
   $scope.$storage = $localStorage.$default({username: 'hello', loggedIn: true});
-}]);
-
-app.controller('DropdownCtrl', function($scope) {
+}])
+.controller('DropdownCtrl', function($scope) {
   $scope.status = {
     isopen: false
   };

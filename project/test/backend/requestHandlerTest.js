@@ -5,17 +5,17 @@ process.env.NODE_ENV = 'test';
 require('should');
 let Q = require('q');
 
-let config = require('../lib/config');
-let DatabaseHandler = require('../lib/databaseHandler');
-let RequestHandler = require('../lib/requestHandler');
+let config = require('../../lib/config');
+let DatabaseHandler = require('../../lib/databaseHandler');
+let RequestHandler = require('../../lib/requestHandler');
 let httpMocks = require('node-mocks-http');
-let ArgumentError = require('../lib/errors').ArgumentError;
-let DatabaseError = require('../lib/errors').DatabaseError;
-let UserSecurity = require('../lib/userSecurity');
+let ArgumentError = require('../../lib/errors').ArgumentError;
+let DatabaseError = require('../../lib/errors').DatabaseError;
+let UserSecurity = require('../../lib/userSecurity');
 let sessions = require('client-sessions');
 let ObjectId = require('mongodb').ObjectId;
 let RandExp = require('randexp');
-let strings = require('../lib/strings');
+let strings = require('../../lib/strings');
 
 let setupResponse = function(done) {
   let response = httpMocks.createResponse(

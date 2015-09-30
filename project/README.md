@@ -9,6 +9,8 @@
 - ✗ When searching, get suggestions in a dropdown list (use debounce)
 - ✓ Button to options
 
+- ✗ For main content, use a white box, possible with gradient (black-white-black) with shadow for weight
+
 #### Options
 - ✗ Change password
 - ✗ Log out everywhere (reset token)

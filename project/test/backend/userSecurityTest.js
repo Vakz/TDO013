@@ -1,9 +1,9 @@
 "use strict";
 require('should');
 
-let config = require('../lib/config');
-let errors = require('../lib/errors');
-let UserSecurity = require('../lib/userSecurity');
+let config = require('../../lib/config');
+let errors = require('../../lib/errors');
+let UserSecurity = require('../../lib/userSecurity');
 let bcrypt = require('bcrypt');
 let RandExp = require('randexp');
 
@@ -13,11 +13,12 @@ describe('UserSecurity', function() {
 
   // Really just for code coverage
   describe('getSessionOptions', function() {
-    it('should return an object with options detailed in config', function() {
+    it('should return an object with options detailed in config', function(done) {
       let options = UserSecurity.getSessionOptions();
       options.secret.should.equal(config.get('security:sessions:key'));
       options.duration.should.equal(config.get('security:sessions:sessionDuration'));
       options.activeDuration.should.equal(config.get('security:sessions:activeDuration'));
+      done();
     });
   });
 

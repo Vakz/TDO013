@@ -7,12 +7,12 @@ require('should');
 let Q = require('q');
 let ObjectId = require('mongodb').ObjectId;
 
-let config = require('../lib/config');
-let DatabaseHandler = require('../lib/databaseHandler');
-let UserSecurity = require('../lib/userSecurity');
-let errors = require('../lib/errors');
+let config = require('../../lib/config');
+let DatabaseHandler = require('../../lib/databaseHandler');
+let UserSecurity = require('../../lib/userSecurity');
+let errors = require('../../lib/errors');
 let mongodb = require('mongodb');
-let strings = require('../lib/strings')
+let strings = require('../../lib/strings');
 
 describe('DatabaseHandler', function() {
   let helper = require('./helper');
@@ -392,11 +392,11 @@ describe('DatabaseHandler', function() {
 
       after(cleanDb);
 
-      it('should return the correct user', function() {
+      it('should return the correct user', function(done) {
         dbHandler.searchUsers('usname')
         .then(function(res) {
-          res._id.should.equal(user._id);
-          res.username.should.equal(user.username);
+          res[0]._id.should.equal(user._id);
+          res[0].username.should.equal(user.username);
           done();
         })
         .done();
