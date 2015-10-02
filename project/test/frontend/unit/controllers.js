@@ -23,4 +23,14 @@ describe('Controllers', function() {
       expect(event.stopPropagation).toHaveBeenCalled();
     });
   });
+
+  describe.skip('loginController', function() {
+    var scope;
+
+    beforeEach(inject(function($rootScope, $controller) {
+      scope = $rootScope.$new();
+      spyOn(scope, 'submit');
+      $controller('loginController', {$scope: scope});
+    }));
+  });
 });

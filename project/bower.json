@@ -25,7 +25,8 @@
     "angular-route": "~1.4.6",
     "normalize-css": "normalize.css#~3.0.3",
     "bootstrap": "~3.3.5",
-    "ngstorage": "~0.3.9"
+    "ngstorage": "~0.3.9",
+    "angular-messages": "~1.4.7"
   },
   "resolutions": {
     "angular": "1.4.7"

@@ -12,6 +12,7 @@ let DatabaseHandler = require('./databaseHandler');
 let SocialServer = function(){
 
   let app = express();
+  let server = null;
   let dbHandler = new DatabaseHandler();
   let requestHandler = new RequestHandler(dbHandler);
   let sessionsSettings = UserSecurity.getSessionOptions();
@@ -35,6 +36,10 @@ let SocialServer = function(){
       else {
         next();
       }
+    });
+    app.use(function(req, res, next) {
+      console.log(req.body);
+      next();
     });
   }
 
@@ -74,7 +79,9 @@ let SocialServer = function(){
   this.start = function() {
     if (Number.isInteger(config.get('server:port'))) {
       dbHandler.connect()
-      .then(() => app.listen(config.get('server:port')))
+      .then(function() {
+        server = app.listen(config.get('server:port'));
+      })
       .done();
     }
     else{
@@ -83,7 +90,7 @@ let SocialServer = function(){
   };
 
   this.stop = function() {
-    app.close();
+    server.close();
   };
 };
 

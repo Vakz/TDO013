@@ -10,7 +10,7 @@
 
     "protractor": "protractor test/protractor.conf.js",
 
-    "preprotractor": "webdriver-manager update",
+    "preprotractor": "webdriver-manager update"
   },
   "author": "",
   "license": "ISC",
