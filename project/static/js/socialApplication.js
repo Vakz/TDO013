@@ -5,6 +5,6 @@ var app = angular.module('socialApplication', ['ngRoute', 'ui.bootstrap', 'socia
 .config(["$routeProvider", function($routeProvider) {
   $routeProvider.when('/login', {
     templateUrl: 'partials/login.html',
-    controller: 'loginController'
+    controller: 'LoginController'
   });
 }]);

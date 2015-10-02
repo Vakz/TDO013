@@ -9,8 +9,11 @@ module.exports = function(config){
       'static/bower_components/angular-route/angular-route.js',
       'static/bower_components/angular-mocks/angular-mocks.js',
       'static/bower_components/ngstorage/ngStorage.js',
-      'static/js/**/*.js',
-      'test/frontend/unit/*.js'
+      'static/bower_components/angular-messages/angular-messages.js',
+      'static/js/socialApplication.js',
+      'static/js/services.js',
+      'static/js/controllers.js',
+      'test/frontend/unit/*Test.js'
     ],
 
     autoWatch: true,

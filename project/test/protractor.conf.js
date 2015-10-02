@@ -1,6 +1,6 @@
 exports.config = {
   specs: [
-    'frontend/e2e/*.js'
+    'frontend/e2e/*Test.js'
   ],
 
   capabilites: {
