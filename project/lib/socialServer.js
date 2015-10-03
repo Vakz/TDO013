@@ -37,10 +37,6 @@ let SocialServer = function(){
         next();
       }
     });
-    app.use(function(req, res, next) {
-      console.log(req.body);
-      next();
-    });
   }
 
   function setupRoutes() {

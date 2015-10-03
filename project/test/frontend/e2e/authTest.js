@@ -15,6 +15,11 @@ describe('Login', function() {
     browser.get('/#/login');
   });
 
+  afterEach(function() {
+    browser.executeScript('window.localStorage.clear();');
+    browser.manage().deleteAllCookies();
+});
+
   it('form should not be valid', function(done) {
     element(by.name('username')).getAttribute('class')
     .then(function(classes) {

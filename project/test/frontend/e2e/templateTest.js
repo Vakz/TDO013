@@ -1,12 +1,11 @@
 "use strict";
 
-process.env['database:db'] = 'social_website_test';
+process.env['database:db'] = 'social_website_e2e_test';
 
 describe('Template', function() {
   let server = new (require('../../../lib/socialServer'))();
 
   beforeAll(function(done) {
-    console.log(browser.baseUrl);
     server.start();
     done();
   });

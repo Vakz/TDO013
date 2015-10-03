@@ -6,32 +6,38 @@ var app = angular.module('socialApplication', ['ngRoute', 'ui.bootstrap', 'socia
   $routeProvider
   .when('/login', {
     templateUrl: 'partials/auth.html',
-    controller: 'AuthController'
+    controller: 'AuthController',
+    secure: false
   })
   .when('/register', {
     templateUrl: 'partials/auth.html',
-    controller: 'AuthController'
+    controller: 'AuthController',
+    secure: false
   })
   .when('/logout', {
     templateUrl: 'partials/auth.html',
-    controller: 'AuthController'
+    controller: 'AuthController',
+    secure: true
+  })
+  .when('/profile', {
+    templateUrl: 'partials/profile.html',
+    controller: 'ProfileController',
+    secure: true
   })
   .otherwise('/profile');
 }]).run(['$localStorage', '$location', '$rootScope', 'authService', function($localStorage, $location, $rootScope, authService) {
   $rootScope.$on('$routeChangeStart', function(e, next, current) {
-    if (!/\/(login|register)/.test($location.path()) && !$localStorage.loggedIn) {
+    if (next.$$route && next.$$route.secure && !$localStorage.loggedIn) {
       e.preventDefault();
-      $location.path('/login');
-    }
-    else if (/\/(login|regiser)/.test($location.path()) && $localStorage.loggedIn) {
+      $rootScope.$evalAsync(function() {
+        $location.path('/login');
+      });
+    } // Only unsecure routes are login and register, neither of which should be useable while already logged in
+    else if (next.$$route && !next.$$route.secure && $localStorage.loggedIn) {
       e.preventDefault();
-      $location.path('/profile');
-    }
-    else if (/\/logout/.test($location.path())) {
-      e.preventDefault();
-      authService.logout()
-      .then(() => $localStorage.$reset())
-      .then(() => $location.path('/login'));
+      $rootScope.$evalAsync(function() {
+        $location.path('/profile');
+      });
     }
   });
 }]);

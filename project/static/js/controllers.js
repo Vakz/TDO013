@@ -3,7 +3,7 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
 .controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
   $scope.$storage = $localStorage.$default({loggedIn: false});
 }])
-.controller('DropdownCtrl', ["$scope", function($scope) {
+.controller('DropdownCtrl', ["$scope", "authService", "$location", function($scope, authService, $location) {
   $scope.status = {
     isopen: false
   };
@@ -16,6 +16,13 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
     $event.preventDefault();
     $event.stopPropagation();
     $scope.status.isopen = !$scope.status.isopen;
+  };
+
+  $scope.logout = function() {
+    console.log("here");
+    authService.logout()
+    .then(() => $scope.$storage.$reset())
+    .then(() => $location.path('/login'));
   };
 }])
 .controller('AuthController', ['$scope', '$location', '$localStorage', 'authService',
@@ -43,4 +50,8 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
         .finally(() => $scope.pending = false);
       }
     };
-}]);
+
+}])
+.controller('ProfileController', function() {
+
+});
