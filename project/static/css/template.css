@@ -21,5 +21,12 @@ body{
 .voffset9 { margin-top: 150px; }
 
 input.ng-dirty.ng-invalid{
-  border:2px solid red; 
+  border:2px solid red;
+}
+
+.bg-danger {
+  padding: 5px 1px;
+  text-align: center;
+  border: 1px solid black;
+  border-radius: 3px;
 }

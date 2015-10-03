@@ -1,0 +1,22 @@
+<form name="loginform" ng-submit="loginform.$valid && submit(user)" class="row col-xs-10 col-xs-offset-1 voffset7 col-lg-4 col-lg-offset-4 form-horizontal" novalidate>
+  <div ng-messages="errors"  role="alert">
+    <div class="bg-danger" ng-message="loginError">{{error}}</div>
+  </div>
+  <div class="voffset3">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input class="form-control" ng-model="user.username" type="text" ng-pattern="/^[\w\d._]+$/" placeholder="username" name="username" name="username" ng-minlength="1" ng-maxlength="10" required>
+    </div>
+    <div class="form-group">
+      <label class="voffset3" for="password">Password</label>
+      <input class="form-control" ng-model="user.password" type="password" placeholder="password" name="password" name="password" ng-minlength="6" required>
+    </div>
+    <div class="form-group voffset3">
+      <button class="voffset col-xs-4 col-lg-4 btn btn-default" id="submit" type="submit">{{ login ? 'Log in' : 'Register' }}</button>
+      <ng-include class="col-lg-5 col-xs-offset-4 col-lg-offset-1 col-xs-4" src="'partials/loading.html'" ng-if="pending"></ng-include>
+    <div class="form-group">
+  </div>
+</form>
+<div ng-if="login" class="row col-xs-offset-0">
+  <a href="#/register">Not a member?</a>
+</div>

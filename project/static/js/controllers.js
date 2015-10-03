@@ -1,8 +1,7 @@
 "use strict";
 angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
 .controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
-  $localStorage.$reset();
-  $scope.$storage = $localStorage.$default({});
+  $scope.$storage = $localStorage.$default({loggedIn: false});
 }])
 .controller('DropdownCtrl', ["$scope", function($scope) {
   $scope.status = {
@@ -19,22 +18,29 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
     $scope.status.isopen = !$scope.status.isopen;
   };
 }])
-.controller('LoginController', ['$scope', '$location', '$localStorage', 'authService',
+.controller('AuthController', ['$scope', '$location', '$localStorage', 'authService',
   function($scope, $location, $localStorage, authService) {
-    $scope.errors = {};
-    $scope.error = "";
+    $scope.login = /\/login$/.test($location.path());
+    angular.extend($scope, {
+      pattern: /[\w\d._]+/,
+      errors: {},
+      error: "",
+      pending: false
+    });
     $scope.submit = function(user) {
-      if ($scope.loginform.$valid) {
-        authService.login(user.username, user.password)
-        .then(function(res) {
-          $localStorage.loggedIn = true;
-          $localStorage.username = res.data.username;
-          $localStorage._id = res.data._id;
+      if (!$scope.pending && $scope.loginform.$valid) {
+        $scope.pending = true;
+        var authcall = null;
+        if ($scope.login) authcall = authService.login(user.username, user.password);
+        else authcall = authService.register(user.username, user.password);
+        authcall.then(function(res) {
+          angular.extend($localStorage, res.data, {loggedIn: true});
           $location.path('/profile');
         }, function(err) {
           $scope.error = err.data;
           $scope.errors.loginError = true;
-        });
+        })
+        .finally(() => $scope.pending = false);
       }
     };
 }]);

@@ -3,23 +3,6 @@
 describe('Controllers', function() {
   beforeEach(module('socialApplication'));
 
-  beforeEach(function() {
-    module(function($provide) {
-      $provide.service('authService', function($q) {
-        return {
-          login: function(uname, pw) {
-            return $q(function(resolve, reject) {
-              if (pw.length >= 6) resolve({status:200, data: {username: 'uname', _id: 'aaa'}});
-              else reject({data: 'Password too short'});
-            });
-          }
-        };
-      });
-    });
-
-
-  });
-
   describe('DropdownCtrl', function() {
     var scope;
     var event = {
@@ -42,37 +25,33 @@ describe('Controllers', function() {
   });
 
   describe('LoginController', function() {
-    var scope;
+    var scope, $httpBackend;
 
-    beforeEach(inject(function($rootScope, $controller) {
+    beforeEach(inject(function($rootScope, $controller, _$httpBackend_, $location) {
       scope = $rootScope.$new();
+      $location.path('/#/login');
       scope.loginform = {$valid: true};
-      $controller('LoginController', {$scope: scope});
+      $controller('AuthController', {$scope: scope});
+      $httpBackend = _$httpBackend_;
     }));
 
-    it('should get an error', function(done) {
+    it('should get an error', function() {
       inject(function($timeout) {
-        spyOn(scope, 'submit').and.callThrough();
+        $httpBackend.expect('POST', /\/login$/).respond(422, {data: 'error'});
         scope.submit({username: 'uname', password: 'short'});
-        // Need to give submit time to resolve
-        $timeout(function() {
-          expect(scope.errors.loginError).toBe(true);
-          done();
-        }, 0);
-        $timeout.flush();
+        $httpBackend.flush();
+        expect(scope.errors.loginError).toBe(true);
       });
     });
 
-    it('should log in user', function(done) {
-      inject(function($timeout, $localStorage) {
+    it('should log in user', function() {
+      inject(function($timeout, $localStorage, $location) {
+        $httpBackend.expect('POST', /\/login$/).respond(200, {username: 'uname', _id: 'a'});
+        spyOn($location, "path");
         scope.submit({username: 'uname', password: 'longer'});
-        // Need to give submit time to resolve
-        $timeout(function() {
-          expect($localStorage.loggedIn).toBe(true);
-          expect($localStorage.username).toBe('uname');
-          done();
-        }, 0);
-        $timeout.flush();
+        $httpBackend.flush();
+        expect($localStorage.username).toBe('uname');
+        expect($location.path).toHaveBeenCalledWith('/profile');
       });
     });
   });

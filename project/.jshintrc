@@ -9,6 +9,7 @@
     "inject": true,
     "browser": true,
     "element": true,
-    "by": true
+    "by": true,
+    "protractor": true
   }
 }
