@@ -24,9 +24,37 @@ input.ng-dirty.ng-invalid{
   border:2px solid red;
 }
 
+textarea.ng-dirty.ng-invalid{
+  border:2px solid red;
+}
+
 .bg-danger {
   padding: 5px 1px;
   text-align: center;
   border: 1px solid black;
   border-radius: 3px;
+}
+
+.message{
+  background-color: rgb(233, 241, 241);
+  border: 1px solid black;
+  border-radius: 2px;
+  padding-top: 5px;
+  word-wrap: break-word;
+}
+
+#preview{
+  background-color: rgb(124, 186, 179);
+}
+
+.message:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.deleteButton {
+  padding-top: 0px;
+}
+
+a:focus, a:active, .btn-link:active, .btn-link:focus{
+  outline: 0;
 }

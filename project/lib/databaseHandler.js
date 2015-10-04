@@ -203,7 +203,7 @@ let DatabaseHandler = function() {
       else {
         scope.getManyById([from, to])
         .then(function(res) {
-          if (res.length !== 2 || res.some((doc) => !doc)) throw new SemanticsError(strings.noUser);
+          if ((res.length !== 2 && from != to) || res.some((doc) => !doc)) throw new SemanticsError(strings.noUser);
         })
         .then(function() { if(!message || typeof message !== 'string' || !message.trim()) throw new ArgumentError(strings.emptyMessage); })
         .then(function() {return {'from': from, 'to': to, 'message': message, _id: generateId(), time: Date.now()}; })

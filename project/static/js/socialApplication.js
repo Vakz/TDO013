@@ -19,7 +19,7 @@ var app = angular.module('socialApplication', ['ngRoute', 'ui.bootstrap', 'socia
     controller: 'AuthController',
     secure: true
   })
-  .when('/profile/:id', {
+  .when('/profile/:id?', {
     templateUrl: '/partials/profile.html',
     controller: 'ProfileController',
     secure: true

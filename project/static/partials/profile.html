@@ -1,3 +1,26 @@
-<div id="profilecontent">
-  <h1>{{username}}</h1>
+<div class="row col-xs-12" id="profilecontent">
+  <h1>{{ username }}</h1>
+  <tabset class="voffset6">
+    <tab id="messageTab" heading="Messages" >
+      <div ng-controller="MessageController">
+        <form class="form-horizontal col-xs-10" name="messageform" ng-submit="submit(messagebox)" novalidate>
+          <textarea name="messagebox" ng-model="messagebox" ng-maxlength="200" ng-minlength="1" class="voffset3 form-group form-control" required></textarea>
+          <div class="form-group">
+            <button ng-disabled="!messageform.$valid" class="voffset col-xs-2 btn btn-default" id="submit" type="submit">Send</button>
+            <div class="col-xs-2 col-xs-offset-1">
+              <ng-include src="'partials/loading.html'" ng-show="pending"></ng-include>
+            </div>
+            <div ng-messages="errors" class="col-xs-7" role="alert">
+              <div class="bg-danger small" ng-message="messageError">{{error}}</div>
+            </div>
+          </div>
+        </form>
+        <div class="voffset3 message col-xs-10" id="preview" ng-include="'partials/message.html'" ng-show="messagebox.length > 0" ng-controller="MessagePreviewController"></div>
+        <div class="voffset3 message col-xs-10" ng-include="'partials/message.html'" ng-repeat="message in messages|orderBy:message.time:true"></div>
+      </div>
+    </tab>
+    <tab heading="Images">
+
+    </tab>
+  </tabset>
 </div>

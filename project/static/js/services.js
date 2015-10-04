@@ -59,4 +59,23 @@ angular.module("socialApplication")
     });
   };
   return { getProfile: getProfile };
+}])
+.service('MessageService', ['$http', 'BaseURL', function($http, BaseURL) {
+  var sendMessage = function(to, message) {
+    return $http({
+      method: 'POST',
+      url: BaseURL + 'sendMessage',
+      data: {receiver: to, message: message},
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+  var removeMessage = function(id) {
+    return $http({
+      method: "DELETE",
+      url: BaseURL + "deleteMessage",
+      data: {messageId: id},
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+  return {sendMessage: sendMessage, removeMessage: removeMessage};
 }]);

@@ -34,7 +34,8 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
       pending: false
     });
     $scope.submit = function(user) {
-      if (!$scope.pending && $scope.loginform.$valid) {
+      console.log(user);
+      if (!$scope.pending) {
         $scope.pending = true;
         var authcall = null;
         if ($scope.login) authcall = AuthService.login(user.username, user.password);
@@ -43,6 +44,7 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
           angular.extend($localStorage, res.data, {loggedIn: true});
           $location.path('/profile');
         }, function(err) {
+          console.log(err);
           $scope.error = err.data;
           $scope.errors.loginError = true;
           $scope.pending = false;
@@ -53,13 +55,51 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
 }])
 .controller('ProfileController', ['$scope', '$routeParams', 'ProfileService', function($scope, $routeParams, ProfileService) {
   $scope.id = $routeParams.id || $scope.$storage._id;
-  console.log($scope.id);
+  $scope.ownProfile = $scope.id === $scope.$storage._id;
   ProfileService.getProfile($scope.id)
   .then(function(profile) {
-    console.log(profile);
-    $scope.username = profile.username;
+    angular.extend($scope, profile);
   });
 }])
-.controller('MessageController', ['$scope', function() {
+.controller('MessageController', ['$scope', 'MessageService', function($scope, MessageService) {
+  $scope.pending = false;
+  $scope.submit = function(message) {
+    $scope.errors = {};
+    if(!$scope.pending) {
+      $scope.pending = true;
+      MessageService.sendMessage($scope.id, $scope.messagebox)
+      .then(function(res) {
+        if (!$scope.users.has($scope.$storage._id)) $scope.users.set($scope.$storage._id, $scope.$storage.username);
+        $scope.errors.messageError = false;
+        $scope.messages.push(res.data);
+        $scope.messagebox = null;
+        $scope.messageform.$setPristine();
+      },
+      function(err) {
+        $scope.errors.messageError = true;
+        $scope.error = err.data;
+      })
+      .finally(function() {
+        $scope.pending = false;
+      });
+    }
+  };
+  $scope.remove = function(id) {
+    MessageService.removeMessage(id)
+    .then(function() {
+      $scope.messages.splice($scope.messages.indexOf((m) => m._id === id), 1);
+    });
+  };
+}])
+.controller('MessagePreviewController', ['$scope', function($scope) {
+  $scope.message = {
+    from: $scope.$storage._id,
+    users: new Map([[$scope.from, $scope.$storage.username]]),
+    message: $scope.messagebox,
+    time: Date.now()
+  };
+  $scope.$watch('messagebox', function() {
+    $scope.message.message = $scope.messagebox;
+  });
 
 }]);

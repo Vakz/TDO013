@@ -66,6 +66,15 @@ describe('Route', function() {
     });
   });
 
+  it('should reroute to login when not logged in', function(done) {
+    browser.get("/#/profile");
+    browser.getCurrentUrl()
+    .then(function(url) {
+      expect(/login$/.test(url)).toBe(true);
+      done();
+    });
+  });
+
   afterAll(function(done) {
     server.stop();
     done();
