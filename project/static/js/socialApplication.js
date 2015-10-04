@@ -19,13 +19,13 @@ var app = angular.module('socialApplication', ['ngRoute', 'ui.bootstrap', 'socia
     controller: 'AuthController',
     secure: true
   })
-  .when('/profile', {
-    templateUrl: 'partials/profile.html',
+  .when('/profile/:id', {
+    templateUrl: '/partials/profile.html',
     controller: 'ProfileController',
     secure: true
   })
   .otherwise('/profile');
-}]).run(['$localStorage', '$location', '$rootScope', 'authService', function($localStorage, $location, $rootScope, authService) {
+}]).run(['$localStorage', '$location', '$rootScope', function($localStorage, $location, $rootScope) {
   $rootScope.$on('$routeChangeStart', function(e, next, current) {
     if (next.$$route && next.$$route.secure && !$localStorage.loggedIn) {
       e.preventDefault();

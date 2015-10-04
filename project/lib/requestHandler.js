@@ -143,11 +143,6 @@ let RequestHandler = function(dbHandler) {
           .then(() => resolve(params), reject);
         });
       })
-      .then(function(result) {
-        dbHandler.getMessages(result._id)
-        .then((messages) => result.messages = messages);
-        return result;
-      })
       .then((result) => res.status(200).json(result))
       .catch((err) => errorHandler(res, err))
       .done();

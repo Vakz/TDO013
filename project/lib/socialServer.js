@@ -60,6 +60,8 @@ let SocialServer = function(){
 
     app.delete('/deleteMessage', requestHandler.deleteMessage);
 
+    app.post('/addFriend', requestHandler.addFriend);
+
     app.delete('/unfriend', requestHandler.unfriend);
 
     app.get('/checkIfFriends', requestHandler.checkIfFriends);
