@@ -34,7 +34,35 @@ describe('Services', function() {
     });
   });
 
-  describe('MessageService', function() {
+  describe('ProfileService', function() {
+    var $httpBackend, ProfileService;
+    beforeEach(inject(function(_$httpBackend_, _ProfileService_) {
+      $httpBackend = _$httpBackend_;
+      ProfileService = _ProfileService_;
+    }));
 
+    it('should return an Error', function(done) {
+      $httpBackend.expect('GET', /\/getProfile/)
+      .respond(400, 'User does not exist');
+      ProfileService.getProfile('a')
+      .then(null, function(err) {
+        expect(err instanceof Error).toBe(true);
+        done();
+      });
+      $httpBackend.flush();
+    });
+
+    it('should return username, id and array of messages', function(done) {
+      $httpBackend.expect('GET', /\/getProfile/)
+      .respond(200, {username: 'uname', _id: 'a', messages: []});
+      ProfileService.getProfile('a')
+      .then(function(res) {
+        expect(res.username).toBe('uname');
+        expect(res._id).toBe('a');
+        expect(res.messages).toEqual([]);
+        done();
+      });
+      $httpBackend.flush();
+    });
   });
 });

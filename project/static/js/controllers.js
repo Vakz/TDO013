@@ -1,6 +1,6 @@
 "use strict";
 angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
-.controller('templateController', ["$scope", "$localStorage", function($scope, $localStorage) {
+.controller('TemplateController', ["$scope", "$localStorage", function($scope, $localStorage) {
   $scope.$storage = $localStorage.$default({loggedIn: false});
 }])
 .controller('DropdownCtrl', ["$scope", "AuthService", "$location", function($scope, AuthService, $location) {
@@ -34,7 +34,6 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
       pending: false
     });
     $scope.submit = function(user) {
-      console.log(user);
       if (!$scope.pending) {
         $scope.pending = true;
         var authcall = null;
@@ -44,7 +43,6 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
           angular.extend($localStorage, res.data, {loggedIn: true});
           $location.path('/profile');
         }, function(err) {
-          console.log(err);
           $scope.error = err.data;
           $scope.errors.loginError = true;
           $scope.pending = false;
@@ -54,11 +52,15 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
 
 }])
 .controller('ProfileController', ['$scope', '$routeParams', 'ProfileService', function($scope, $routeParams, ProfileService) {
+  $scope.error = "";
   $scope.id = $routeParams.id || $scope.$storage._id;
   $scope.ownProfile = $scope.id === $scope.$storage._id;
   ProfileService.getProfile($scope.id)
   .then(function(profile) {
     angular.extend($scope, profile);
+  },
+  function(err) {
+    $scope.error = err.message;
   });
 }])
 .controller('MessageController', ['$scope', 'MessageService', function($scope, MessageService) {

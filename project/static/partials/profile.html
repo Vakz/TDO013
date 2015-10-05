@@ -5,6 +5,7 @@
       <div ng-controller="MessageController">
         <form class="form-horizontal col-xs-10" name="messageform" ng-submit="submit(messagebox)" novalidate>
           <textarea name="messagebox" ng-model="messagebox" ng-maxlength="200" ng-minlength="1" class="voffset3 form-group form-control" required></textarea>
+          <p ng-show="error">{{error}}</p>
           <div class="form-group">
             <button ng-disabled="!messageform.$valid" class="voffset col-xs-2 btn btn-default" id="submit" type="submit">Send</button>
             <div class="col-xs-2 col-xs-offset-1">

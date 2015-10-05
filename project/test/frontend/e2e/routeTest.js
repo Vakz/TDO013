@@ -12,67 +12,37 @@ describe('Route', function() {
 
   beforeAll(function() {
     server.start();
+    browser.addMockModule('httpBackendMock', require('./backend'));
   });
 
-  beforeEach(function(done) {
+  beforeEach(function() {
     browser.get('/#/login');
-    element(by.id("usernamelink")).getText()
-    .then(function(text) {
-      expect(text).toBe('Not logged in');
-      done();
-    });
+    expect(element(by.id("usernamelink")).getText()).toBe('Not logged in');
   });
 
-  it('should log in, attempt to reroute to login, then log out', function(done) {
-    let passwordInput = element(by.name('password'));
-    let usernameInput = element(by.name('username'));
-
-    usernameInput.sendKeys("uname");
-    passwordInput.sendKeys("hellothere");
-
+  it('should log in, attempt to reroute to login, then log out', function() {
+    element(by.name('username')).sendKeys("uname");
+    element(by.name('password')).sendKeys("hellothere");
     element(by.id('submit')).click();
 
     browser.sleep(1000);
-
-    browser.getCurrentUrl()
-    .then(function(url) {
-      expect(/\/profile$/.test(url)).toBe(true);
-      return element(by.id('usernamelink')).getText();
-    })
-    .then(function(text) {
-      expect(text).toBe('uname');
-      browser.setLocation('login');
-      return browser.getCurrentUrl();
-    })
-    .then(function(url) {
-      expect(/\/profile$/.test(url)).toBe(true);
-      element(by.id('optionsbutton')).click();
-      return element(by.css('.btn-group')).getAttribute('class');
-    })
-    .then(function(classes) {
-      expect(classes).toMatch(/\sopen(\s|$)/);
-    })
-    .then(function() {
-      element.all(by.id('logout')).click();
-      return browser.getCurrentUrl();
-    })
-    .then(function(url) {
-      expect(/\login$/.test(url)).toBe(true);
-      return element(by.id('usernamelink')).getText();
-    })
-    .then(function(text) {
-      expect(text).toBe('Not logged in');
-      done();
-    });
+    // Expect to be logged in
+    expect(browser.getCurrentUrl()).toMatch(/\/profile$/);
+    expect(element(by.id('usernamelink')).getText()).toBe('uname');
+    // Attempt to reroute to /login
+    browser.setLocation('login');
+    expect(browser.getCurrentUrl()).toMatch(/\/profile$/);
+    // Expect to have been rerouted back to /profile
+    element(by.id('optionsbutton')).click();
+    expect(element(by.css('.btn-group')).getAttribute('class')).toMatch(/\sopen(\s|$)/);
+    element.all(by.id('logout')).click();
+    expect(browser.getCurrentUrl()).toMatch(/\login$/);
+    expect(element(by.id('usernamelink')).getText()).toBe('Not logged in');
   });
 
-  it('should reroute to login when not logged in', function(done) {
+  it('should reroute to login when not logged in', function() {
     browser.get("/#/profile");
-    browser.getCurrentUrl()
-    .then(function(url) {
-      expect(/login$/.test(url)).toBe(true);
-      done();
-    });
+    expect(browser.getCurrentUrl()).toMatch(/login$/);
   });
 
   afterAll(function(done) {

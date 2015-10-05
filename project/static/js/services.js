@@ -45,8 +45,11 @@ angular.module("socialApplication")
         profile.messages.forEach(function(message) {
           ids.add(message.from);
         });
-
-        return UserService.getUsernamesById(Array.from(ids));
+        // No need calling server if no ids to retrieve
+        if (ids.size !== 0) {
+          return UserService.getUsernamesById(Array.from(ids));
+        }
+        return { data: [] };
       })
       .then(function(users) {
         profile.users = new Map();
@@ -55,7 +58,9 @@ angular.module("socialApplication")
         });
         resolve(profile);
       })
-      .catch(reject);
+      .catch(function(err) {
+        reject(new Error(err.data));
+      });
     });
   };
   return { getProfile: getProfile };
