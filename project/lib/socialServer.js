@@ -31,7 +31,7 @@ let SocialServer = function(){
         .then(function(res) {
           if (!res) req.session.reset();
         })
-        .then(next());
+        .then(next);
       }
       else {
         next();

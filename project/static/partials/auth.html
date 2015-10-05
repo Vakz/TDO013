@@ -1,4 +1,4 @@
-<form name="loginform" ng-submit="loginform.$valid && submit(user)" class="row col-xs-10 col-xs-offset-1 voffset7 col-lg-4 col-lg-offset-4 form-horizontal" novalidate>
+<form name="loginform" ng-submit="loginform.$valid && submit(user)" class="row col-xs-10 col-xs-offset-1 voffset7 col-lg-4 col-lg-offset-4 row form-horizontal" novalidate>
   <div ng-messages="errors"  role="alert">
     <div class="bg-danger" ng-message="loginError">{{error}}</div>
   </div>
@@ -14,9 +14,9 @@
     <div class="form-group voffset3">
       <button ng-disabled="!loginform.$valid" class="voffset col-xs-4 col-lg-4 btn btn-default" id="submit" type="submit">{{ login ? 'Log in' : 'Register' }}</button>
       <ng-include class="col-xs-offset-1 col-xs-4" src="'partials/loading.html'" ng-show="pending"></ng-include>
-    <div class="form-group">
+    </div>
+  </div>
+  <div ng-show="login">
+    <a class="col-xs-10" href="#/register">Not a member?</a>
   </div>
 </form>
-<div ng-show="login" class="row col-xs-offset-0">
-  <a href="#/register">Not a member?</a>
-</div>

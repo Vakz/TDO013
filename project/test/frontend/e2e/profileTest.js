@@ -43,7 +43,8 @@ describe('Profile', function() {
     browser.get('/#/profile/aaa');
     element(by.name('messagebox')).sendKeys('newmessage');
     element(by.id('submit')).click();
-    expect(element.all(by.css('.messagetext')).get(1).getText(2)).toBe('newmessage');
+    expect(element(by.name('messagebox')).getText()).toBe('');
+    expect(element.all(by.css('.messagetext')).get(1).getText()).toBe('newmessage');
   });
 
   afterAll(function(done) {

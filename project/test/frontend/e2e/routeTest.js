@@ -40,6 +40,7 @@ describe('Route', function() {
     expect(element(by.id('usernamelink')).getText()).toBe('Not logged in');
   });
 
+
   it('should reroute to login when not logged in', function() {
     browser.get("/#/profile");
     expect(browser.getCurrentUrl()).toMatch(/login$/);

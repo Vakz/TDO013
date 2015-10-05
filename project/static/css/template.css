@@ -58,3 +58,22 @@ textarea.ng-dirty.ng-invalid{
 a:focus, a:active, .btn-link:active, .btn-link:focus{
   outline: 0;
 }
+
+#buttonrow {
+  margin-left: 0px;
+}
+
+#optionsloading{
+  display: inline-block;
+  height: 50px;
+  margin-left: 10px;
+}
+
+.modal-content {
+  padding: 25px;
+  padding-left: 45px;
+}
+
+#resetButton {
+  padding-left: 0px;
+}

@@ -35,6 +35,12 @@ module.exports = function() {
       data = JSON.parse(data);
       return [200, {_id: 'nicemessageid', from: 'aaa', to: 'aaa', message: data.message, time: Date.now()}];
     });
+    $httpBackend.when('PUT', /updatePassword/).respond(function() {
+      return [204];
+    });
+    $httpBackend.when('PUT', /resetSessions/).respond(function() {
+      return [204];
+    });
     $httpBackend.when('GET', /partials|js|css/).passThrough();
   }]);
 };

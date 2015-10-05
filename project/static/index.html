@@ -24,7 +24,7 @@
         <div ng-controller="DropdownCtrl" class="alignHeader btn-group col-xs-4 col-sm-1" dropdown is-open="status.isopen">
           <button id="optionsbutton" ng-show="$storage.loggedIn" type="button" class="btn btn-primary" dropdown-toggle>Options <span class="caret"></span></button>
           <ul class="dropdown-menu" role="menu">
-            <li role="menuitem"><a href="#/options">Settings</a></li>
+            <li id="options" role="menuitem"><a ng-click="open()" href="">Settings</a></li>
             <li id="logout" role="menuitem"><a ng-click="logout()" href="">Log out</a></li>
           </ul>
         </div>

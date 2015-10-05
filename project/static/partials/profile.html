@@ -1,5 +1,12 @@
 <div class="row col-xs-12" id="profilecontent">
-  <h1>{{ username }}</h1>
+  <div class="row">
+    <h3 class="col-xs-5">{{ username }}
+    <small>
+      <span ng-if="id === $storage._id">This is you!</span>
+      <button ng-click="unfriend()" class="btn btn-link" ng-if="id !== $storage._id">Unfriend</button>
+    </small>
+  </h3>
+  </div>
   <tabset class="voffset6">
     <tab id="messageTab" heading="Messages" >
       <div ng-controller="MessageController">

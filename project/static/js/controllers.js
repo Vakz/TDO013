@@ -1,7 +1,15 @@
 "use strict";
 angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
-.controller('TemplateController', ["$scope", "$localStorage", function($scope, $localStorage) {
+.controller('TemplateController', ["$scope", "$localStorage", "$modal", function($scope, $localStorage, $modal) {
   $scope.$storage = $localStorage.$default({loggedIn: false});
+
+  $scope.open = function() {
+    var modalInstance = $modal.open({
+      templateUrl: 'partials/options.html',
+      controller: 'OptionsController',
+      size: 'sm'
+    });
+  };
 }])
 .controller('DropdownCtrl', ["$scope", "AuthService", "$location", function($scope, AuthService, $location) {
   $scope.status = {
@@ -51,7 +59,7 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
     };
 
 }])
-.controller('ProfileController', ['$scope', '$routeParams', 'ProfileService', function($scope, $routeParams, ProfileService) {
+.controller('ProfileController', ['$scope', '$routeParams', 'ProfileService', 'FriendService', function($scope, $routeParams, ProfileService, FriendService) {
   $scope.error = "";
   $scope.id = $routeParams.id || $scope.$storage._id;
   $scope.ownProfile = $scope.id === $scope.$storage._id;
@@ -62,6 +70,10 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
   function(err) {
     $scope.error = err.message;
   });
+
+  $scope.unfriend = function() {
+    FriendService.unfriend($scope.id);
+  };
 }])
 .controller('MessageController', ['$scope', 'MessageService', function($scope, MessageService) {
   $scope.pending = false;
@@ -103,5 +115,36 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
   $scope.$watch('messagebox', function() {
     $scope.message.message = $scope.messagebox;
   });
-
+}])
+.controller('OptionsController', ['$scope', 'AuthService',  '$modalInstance', '$localStorage', "$location",
+function($scope, AuthService, $modalInstance, $localStorage, $location) {
+  $scope.pending = false;
+  $scope.message = "";
+  var reset = function() {
+    $localStorage.$reset();
+    $location.path('/login');
+    $modalInstance.close();
+  };
+  $scope.submit = function() {
+    if ($scope.password !== $scope.verifyPassword) {
+      $scope.message = "Passwords are not identical";
+    }
+    else if(!$scope.pending) {
+      $scope.message = "";
+      $scope.pending = true;
+      AuthService.changePassword($scope.password, $scope.reset)
+      .then(function(res) {
+        if ($scope.reset) reset();
+        else $scope.message = "Password changed!";
+      },
+      function(err) {
+        $scope.message = err.data;
+      })
+      .finally(() => $scope.pending = false);
+    }
+  };
+  $scope.resetSessions = function() {
+    AuthService.resetSessions()
+    .then(reset);
+  };
 }]);

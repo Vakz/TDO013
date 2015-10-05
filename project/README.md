@@ -4,28 +4,21 @@
 - ✓ For template, show search bar in top right
 - ✓ In top left, either show username (link to profile)
 - ✓ When logged in, save id, username and simple "logged in"-variable in local storage
-- ✗ Redirect to login if not logged in
-- ✗ Default to own profile after logging in, or entering /profile without id
+- ✓ Redirect to login if not logged in
+- ✓ Default to own profile after logging in, or entering /profile without id
 - ✗ When searching, get suggestions in a dropdown list (use debounce)
 - ✓ Button to options
 
-- ✗ For main content, use a white box, possible with gradient (black-white-black) with shadow for weight
-
 #### Options
-- ✗ Change password
-- ✗ Log out everywhere (reset token)
+- ✓ Change password
+- ✓ Log out everywhere (reset token)
 
 #### Profiles
 - ✗ Tabs for showing messages or showing friends (eventually add showing images)
-- ✗ Show input at the top for writing a new message. Show preview. (only on message tab)
-- ✗ At the top of content box, show username. Next to username, show "Add to friends" or "You are friends" if not self.
+- ✓ Show input at the top for writing a new message. Show preview. (only on message tab)
 
 #### Search
 - ✗ Repurpose friendslist (write directive?)
-
-#### Registration
-- ✗ Check with backend if username is available
-
 
 # Backend
 ### mongodb

@@ -1,0 +1,19 @@
+<form id="passwordform" name="passwordform" ng-submit="passwordform.$valid && submit()" class="form-horizontal" novalidate>
+  <label for="password">Enter new password</label>
+  <input name="password" ng-minlength="6" ng-model="password" type='password' required></input>
+  <label for="verifyPassword">Enter password again</label>
+  <input name="verifyPassword" ng-minlength="6" ng-model="verifyPassword" type='password' required></input>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" ng-model="reset"> Reset current session
+    </label>
+  </div>
+  <div id="buttonrow" class="row voffset3">
+    <button ng-disabled="!passwordform.$valid" class="voffset col-xs-6 btn" type="submit">Set password</button>
+    <div id="optionsloading">
+      <ng-include class="col-xs-6" src="'partials/loading.html'" ng-show="pending"></ng-include>
+    </div>
+  </div>
+  <p ng-show="message">{{message}}</p>
+</form>
+<button id="resetButton" ng-click="resetSessions()" class="btn btn-link">Log out everywhere</button>

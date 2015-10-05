@@ -14,10 +14,25 @@ angular.module("socialApplication")
       url: BaseURL + 'logout'
     });
   };
+  var changePassword = function(password, reset) {
+    return $http({
+      method: 'PUT',
+      url: BaseURL + 'updatePassword',
+      data: {password: password, reset: reset}
+    });
+  };
+  var resetSessions = function(id) {
+    return $http({
+      method: 'PUT',
+      url: BaseURL + 'resetSessions'
+    });
+  };
   return {
     login: (username, password) => $http(getAuthobject('login', username, password)),
     register: (username, password) => $http(getAuthobject('register', username, password)),
-    logout: logout
+    logout: logout,
+    changePassword: changePassword,
+    resetSessions: resetSessions
   };
 }])
 .service('UserService', ['$http', '$q', 'BaseURL', function($http, $q, BaseURL) {
@@ -83,4 +98,14 @@ angular.module("socialApplication")
     });
   };
   return {sendMessage: sendMessage, removeMessage: removeMessage};
+}])
+.service('FriendService', ['$http', 'BaseURL',function($http, BaseURL) {
+  var unfriend = function(id) {
+    return $http({
+      method: 'DELETE',
+      url: BaseURL + "unfriend",
+      data: {friendId: id}
+    });
+  };
+  return {unfriend: unfriend};
 }]);
