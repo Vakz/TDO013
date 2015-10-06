@@ -1,5 +1,5 @@
 angular.module("socialApplication")
-.constant('BaseURL', 'http://localhost:45555/')
+
 .service('AuthService', ['$http', '$q', 'BaseURL', function($http, $q, BaseURL) {
   var getAuthobject = (destination, uname, pw) =>
   { return {
@@ -137,4 +137,83 @@ angular.module("socialApplication")
     });
   };
   return {unfriend: unfriend, addFriend: addFriend, getFriends: getFriends};
+}])
+.service('ChatService', ['$rootScope', '$localStorage', function($rootScope, $localStorage) {
+  var socket = null;
+  var active = null;
+  var chats = new Map();
+
+    var start = function() {
+      socket = io();
+
+      socket.on('chatmessage', function(message) {
+        // If message.fromId is same as the one stored in localStorage, we are receiving
+        // our copy of a message we sent ourselves
+        var id = message.fromId;
+        var username = message.fromUsername;
+        if (message.fromId === $localStorage._id) {
+          id = message.toId;
+          username = message.toUsername;
+        }
+        if(!chats.has(id)) {
+          newChat(id, username);
+        }
+        chats.get(id).messages.push(message);
+        $rootScope.$digest();
+      });
+    };
+
+  var newChat = function(id, username) {
+    if (!chats.has(id)) {
+      chats.set(id, {username: username, messages: []});
+      $rootScope.$broadcast('newChat', id, username);
+      if (!active) {
+        setActive(id, username);
+      }
+    }
+  };
+
+  var getActiveChats = function() {
+    var users = [];
+    for (var entry of chats.entries()) {
+      users.push({username: entry[1].username, id: entry[0]});
+    }
+    return users;
+  };
+
+  var getActive = function() {
+    return active;
+  };
+
+  var getActiveChat = function() {
+    return chats.get(active.id);
+  };
+
+  var send = function(message) {
+    if (active) socket.emit('chatmessage', {_id: active.id, message: message});
+  };
+
+  var setActive = function(id, username) {
+    if (!active || active.id !== id) {
+      active = {id: id, username: username};
+      $rootScope.$broadcast('activeChanged', active);
+    }
+  };
+
+  $rootScope.$on('logout', function() {
+    socket = null;
+    active = null;
+    chats.clear();
+    $rootScope.$broadcast('chatReset');
+  });
+
+  return {
+    start: start,
+    getActiveChats: getActiveChats,
+    setActive: setActive,
+    newChat: newChat,
+    getActive: getActive,
+    getActiveChat: getActiveChat,
+    send: send
+  };
 }]);

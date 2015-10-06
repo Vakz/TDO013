@@ -5,12 +5,15 @@
       <span ng-if="id === $storage._id">This is you!</span>
       <button ng-click="manageFriend()" class="btn btn-link" ng-if="id !== $storage._id">{{ isFriend ? 'Unfriend' : 'Add friend' }}</button>
     </small>
+    <small>
+      <button ng-click="startChat()" ng-if="isFriend && id !== $storage._id" class="btn btn-link">Send message</button>
+    </small>
   </h3>
   </div>
   <tabset ng-if="isFriend" class="voffset6">
     <tab id="messageTab" heading="Messages" >
       <div ng-controller="MessageController">
-        <form class="form-horizontal col-xs-10" name="messageform" ng-submit="submit(messagebox)" novalidate>
+        <form class="form-horizontal col-xs-12" name="messageform" ng-submit="submit(messagebox)" novalidate>
           <textarea name="messagebox" ng-model="messagebox" ng-maxlength="200" ng-minlength="1" class="voffset3 form-group form-control" required></textarea>
           <p ng-show="error">{{error}}</p>
           <div class="form-group">
@@ -23,8 +26,8 @@
             </div>
           </div>
         </form>
-        <div class="voffset3 message col-xs-10" id="preview" ng-include="'partials/message.html'" ng-show="messagebox.length > 0" ng-controller="MessagePreviewController"></div>
-        <div class="voffset3 message col-xs-10" ng-include="'partials/message.html'" ng-repeat="message in messages|orderBy:message.time:true"></div>
+        <div class="voffset3 message col-xs-12" id="preview" ng-include="'partials/message.html'" ng-show="messagebox.length > 0" ng-controller="MessagePreviewController"></div>
+        <div class="voffset3 message col-xs-12" ng-include="'partials/message.html'" ng-repeat="message in messages|orderBy:message.time:true"></div>
       </div>
     </tab>
     <tab heading="Images">

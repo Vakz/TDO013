@@ -13,6 +13,7 @@ let SocialServer = function(){
 
   let app = express();
   let server = null;
+  let chat = null;
   let dbHandler = new DatabaseHandler();
   let requestHandler = new RequestHandler(dbHandler);
   let sessionsSettings = UserSecurity.getSessionOptions();
@@ -79,6 +80,7 @@ let SocialServer = function(){
       dbHandler.connect()
       .then(function() {
         server = app.listen(config.get('server:port'));
+        chat = new (require('./chat'))(server, dbHandler);
       })
       .done();
     }

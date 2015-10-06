@@ -36,6 +36,9 @@ nconf.defaults({
   },
   messages: {
     maxLength: 200
+  },
+  chat: {
+    maxLength: 100
   }
 });
 

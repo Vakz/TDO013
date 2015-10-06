@@ -77,3 +77,44 @@ a:focus, a:active, .btn-link:active, .btn-link:focus{
 #resetButton {
   padding-left: 0px;
 }
+
+#chatbox {
+  border: 1px solid black;
+  border-radius: 3px;
+  box-shadow: 1px 1px 1px black;
+  background-color: rgb(202, 241, 234);
+  padding: 0;
+}
+
+#chatselect {
+  width: 100%;
+}
+
+#chatselect button {
+  width: 100%;
+  text-align: left;
+}
+
+#chatselect .dropdown-menu {
+  width: 100%;
+}
+
+#chatselect .dropdown-menu li {
+  padding: 3px 10px;
+}
+
+#selectcaret {
+  margin-right: 20px;
+}
+
+#chatinput {
+  height: 25px;
+  font-size: 15px;
+  width: 100%;
+  padding: 1px;
+}
+
+#chatcontent {
+  height: 350px;
+  overflow-y: scroll;
+}

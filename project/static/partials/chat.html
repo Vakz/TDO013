@@ -1,0 +1,16 @@
+<div ng-if="$storage.loggedIn" id="chatbox" class="col-xs-3 voffset9" ng-controller="ChatController">
+  <div id="chatselect" class="btn-group" dropdown>
+    <button type="button" class="btn btn-primary btn-sm" dropdown-toggle><span class="caret" id="selectcaret"></span>{{ active.username || 'No chat selected' }}</button>
+    <ul class="dropdown-menu" role="menu">
+      <li role="menuitem" ng-repeat="user in openChats" ng-click="setActive(user)">{{ user.username }}</li>
+    </ul>
+  </div>
+  <div id="chatcontent">
+    <div ng-repeat="message in chat">
+      <h4>{{ message.fromUsername }}: <small>{{ message.message }}</small></h5> 
+    </div>
+  </div>
+  <form name="chatform"  ng-submit="chatform.$valid && send()" class="form-inline">
+    <input id="chatinput" class="form-control" minlength="1" maxlength="100" ng-model="chatinput"></input>
+  </form>
+</div>

@@ -30,7 +30,10 @@ var strings = {
   alreadyFriends: "Users are already friends",
   notOwnedMessage: "Cannot delete message owned by another user",
   duplicateIds: "Both ids cannot be the same",
-  notFriends: "Not friends with target user"
+  notFriends: "Not friends with target user",
+  notOnline: "User is not online",
+  sendSelf: "Don't send messages to yourself",
+  invalidMessage: 'Message object is invalid'
 };
 
 Object.freeze(strings);

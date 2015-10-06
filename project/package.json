@@ -5,11 +5,8 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "bower install",
-
     "karma": "karma start test/karma.conf.js",
-
     "protractor": "protractor test/protractor.conf.js",
-
     "preprotractor": "webdriver-manager update"
   },
   "author": "",
@@ -18,13 +15,14 @@
     "async": "^1.4.2",
     "bcrypt": "^0.8.5",
     "body-parser": "^1.14.0",
+    "bower": "^1.5.3",
     "client-sessions": "^0.7.0",
     "express": "^4.13.3",
     "mongodb": "^2.0.43",
     "nconf": "^0.7.2",
     "q": "^1.4.1",
     "sanitizer": "^0.1.2",
-    "bower": "^1.5.3"
+    "socket.io": "^1.3.7"
   },
   "devDependencies": {
     "jasmine": "^2.3.2",

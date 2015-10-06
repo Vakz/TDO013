@@ -1,3 +1,11 @@
+# Chat
+### Backend
+
+- ✗ Register active users
+- ✗ Remove disconnecting users
+- ✗ When receving a message from user, check if attempt to send to self, missing id or message. Also check if user is friends with target user.
+- ✗ When sending to user, specify fromId, fromUsername, toId, toUsername and message
+
 # Frontend
 
 ### General design principle

@@ -1,6 +1,7 @@
 "use strict";
 angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
-.controller('TemplateController', ["$scope", "$localStorage", "$modal", "UserService", '$location', function($scope, $localStorage, $modal, UserService, $location) {
+.controller('TemplateController', ["$scope", "$localStorage", "$modal", "UserService", '$location',
+function($scope, $localStorage, $modal, UserService, $location) {
   $scope.$storage = $localStorage.$default({loggedIn: false});
 
   $scope.open = function() {
@@ -22,13 +23,9 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
     $location.path('/profile/' + $item._id);
   };
 }])
-.controller('DropdownCtrl', ["$scope", "AuthService", "$location", function($scope, AuthService, $location) {
+.controller('DropdownCtrl', ["$rootScope", "$scope", "AuthService", "$location", function($rootScope, $scope, AuthService, $location) {
   $scope.status = {
     isopen: false
-  };
-
-  $scope.toggled = function(open) {
-
   };
 
   $scope.toggleDropdown = function($event) {
@@ -39,6 +36,7 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
 
   $scope.logout = function() {
     AuthService.logout()
+    .then(() => $rootScope.$broadcast('logout'))
     .then(() => $scope.$storage.$reset())
     .then(() => $location.path('/login'));
   };
@@ -70,8 +68,8 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
     };
 
 }])
-.controller('ProfileController', ['$scope', '$route', '$routeParams', 'ProfileService', 'UserService', 'FriendService',
-function($scope, $route, $routeParams, ProfileService, UserService, FriendService) {
+.controller('ProfileController', ['$scope', '$route', '$routeParams', 'ProfileService', 'UserService', 'FriendService', 'ChatService',
+function($scope, $route, $routeParams, ProfileService, UserService, FriendService, ChatService) {
   angular.extend($scope, {
     isFriend: false,
     error: "",
@@ -85,7 +83,6 @@ function($scope, $route, $routeParams, ProfileService, UserService, FriendServic
     if ($scope.ownProfile) {
       FriendService.getFriends()
       .then(function(users) {
-        console.dir(users);
         $scope.friends = users.data;
       });
     }
@@ -97,6 +94,10 @@ function($scope, $route, $routeParams, ProfileService, UserService, FriendServic
       else $scope.error = "No user with that id";
     });
   });
+
+  $scope.startChat = function() {
+    ChatService.newChat($scope._id, $scope.username);
+  };
 
   $scope.manageFriend = function() {
     if ($scope.isFriend) FriendService.unfriend($scope.id);
@@ -175,5 +176,39 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
   $scope.resetSessions = function() {
     AuthService.resetSessions()
     .then(reset);
+  };
+}])
+.controller('ChatController', ['$scope', '$rootScope', 'ChatService', function($scope, $rootScope, ChatService) {
+  $scope.openChats = [];
+  $scope.active = null;
+  $scope.chat = [];
+
+  $rootScope.$on('newChat', function($event, id, username) {
+    $scope.openChats = ChatService.getActiveChats();
+    ChatService.setActive(id, username);
+  });
+
+  $rootScope.$on('activeChanged', function($event) {
+    $scope.active = ChatService.getActive();
+    $scope.chat = ChatService.getActiveChat().messages;
+  });
+
+  $rootScope.$on('chatReset', function() {
+    $scope.openChats =  [];
+    $scope.active = null;
+    $scope.chat = [];
+  });
+
+  $scope.send = function() {
+    ChatService.send($scope.chatinput);
+  };
+
+  $scope.toggleDropdown = function($event) {
+    $event.preventDefault();
+    $event.stopPropagation();
+  };
+
+  $scope.setActive = function(chat) {
+    ChatService.setActive(chat.id, chat.username);
   };
 }]);
