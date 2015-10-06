@@ -13,7 +13,7 @@ var Chat = function(httpServer, dbHandler) {
 
   var getUserInfo = function(cookie) {
     let matchCookie = /(?:\s|^)session=([^\s]+)/.exec(cookie);
-    if (matchCookie.length < 2) return null; // Session cookie not set
+    if (!matchCookie || matchCookie.length < 2) return null; // Session cookie not set
     return clientSessions.util.decode(sessionSettings, matchCookie[1]).content;
   };
 
@@ -23,7 +23,11 @@ var Chat = function(httpServer, dbHandler) {
 
   var setupSocket = function(user) {
     user.socket.on('disconnect', function() {
-      activeUsers.delete(user.info._id);
+      var u = activeUsers.get(user._id);
+      if(u && u.sockets.length < 2) activeUsers.delete(user.info._id);
+      else {
+        u.sockets.splice(u.sockets.indexOf(user.socket), 1);
+      }
     });
 
     user.socket.on(socketgroup, function(message) {
@@ -36,8 +40,10 @@ var Chat = function(httpServer, dbHandler) {
         else if (message.message.length > config.get('chat:maxLength')) user.socket.emit(socketgroup, systemMessage(strings.messageTooLong));
         else {
           message.message = sanitizer.escape(message.message);
-          activeUsers.get(message._id).socket.emit(socketgroup,
-          { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id, toUsername: activeUsers.get(message._id).info.username, message: message.message });
+          activeUsers.get(message._id).sockets.forEach(function(socket) {
+            socket.emit(socketgroup,
+            { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id, toUsername: activeUsers.get(message._id).info.username, message: message.message });
+          });
           user.socket.emit(socketgroup,
           { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id, toUsername: activeUsers.get(message._id).info.username, message: message.message });
         }
@@ -48,7 +54,10 @@ var Chat = function(httpServer, dbHandler) {
   io.on('connection', function(socket) {
     var info = getUserInfo(socket.handshake.headers.cookie);
     if (info !== null) {
-      activeUsers.set(info._id, {info: info, socket: socket});
+      if (!activeUsers.has(info._id)) activeUsers.set(info._id, {info: info, sockets: [socket]});
+      else {
+        activeUsers.get(info._id).sockets.push(socket);
+      }
       setupSocket({info: info, socket: socket});
     }
   });

@@ -1,7 +1,5 @@
 "use strict";
-
 var app = angular.module('socialApplication', ['ngRoute', 'ngAnimate', 'ui.bootstrap', 'socialSiteControllers'])
-.constant('BaseURL', 'http://localhost:45555/')
 .config(["$routeProvider", function($routeProvider) {
   $routeProvider
   .when('/login', {

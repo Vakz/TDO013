@@ -201,6 +201,7 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
 
   $scope.send = function() {
     ChatService.send($scope.chatinput);
+    $scope.chatinput = "";
   };
 
   $scope.toggleDropdown = function($event) {

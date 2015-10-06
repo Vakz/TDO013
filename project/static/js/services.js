@@ -1,30 +1,29 @@
 angular.module("socialApplication")
-
-.service('AuthService', ['$http', '$q', 'BaseURL', function($http, $q, BaseURL) {
+.service('AuthService', ['$http', '$q', function($http, $q) {
   var getAuthobject = (destination, uname, pw) =>
   { return {
     method: 'POST',
-    url: BaseURL + destination,
+    url:   destination,
     data: { 'password': pw, 'username': uname},
     headers: { 'Content-Type': 'application/json' }
   }; };
   var logout = function() {
     return $http({
       method: 'POST',
-      url: BaseURL + 'logout'
+      url: 'logout'
     });
   };
   var changePassword = function(password, reset) {
     return $http({
       method: 'PUT',
-      url: BaseURL + 'updatePassword',
+      url: 'updatePassword',
       data: {password: password, reset: reset}
     });
   };
   var resetSessions = function(id) {
     return $http({
       method: 'PUT',
-      url: BaseURL + 'resetSessions'
+      url:   'resetSessions'
     });
   };
   return {
@@ -35,30 +34,31 @@ angular.module("socialApplication")
     resetSessions: resetSessions
   };
 }])
-.service('UserService', ['$http', '$q', 'BaseURL', function($http, $q, BaseURL) {
+.service('UserService', ['$http', '$q', function($http, $q) {
   var getUsernamesById = function(ids) {
     return $http({
       method: 'GET',
-      url: BaseURL + 'getUsersById',
+      url: 'getUsersById',
       params: {ids: JSON.stringify(ids)}
     });
   };
   var search = function(searchstring) {
     return $http({
       method: 'GET',
-      url: BaseURL + 'search',
+      url: 'search',
       params: {searchword: searchstring}
     });
   };
   return { getUsernamesById: getUsernamesById, search: search };
 }])
-.service('ProfileService', ['$http', '$q', 'BaseURL', 'UserService', function($http, $q, BaseURL, UserService) {
+.service('ProfileService', ['$http', '$q', 'UserService', function($http, $q, UserService) {
   var getProfile = function(id) {
     return $q(function(resolve, reject) {
+      console.log(  'getProfile');
       var profile;
       $http({
         method: 'GET',
-        url: BaseURL + 'getProfile',
+        url: 'getProfile',
         params: {id: id}
       })
       .then(function(result) {
@@ -88,17 +88,17 @@ angular.module("socialApplication")
   var getUserById = function(id) {
     return $http({
       method: 'GET',
-      url: BaseURL + 'getUserById',
+      url:   'getUserById',
       params: {id: id}
     });
   };
   return { getProfile: getProfile };
 }])
-.service('MessageService', ['$http', 'BaseURL', function($http, BaseURL) {
+.service('MessageService', ['$http', function($http) {
   var sendMessage = function(to, message) {
     return $http({
       method: 'POST',
-      url: BaseURL + 'sendMessage',
+      url: 'sendMessage',
       data: {receiver: to, message: message},
       headers: { 'Content-Type': 'application/json' }
     });
@@ -106,18 +106,18 @@ angular.module("socialApplication")
   var removeMessage = function(id) {
     return $http({
       method: "DELETE",
-      url: BaseURL + "deleteMessage",
+      url: "deleteMessage",
       data: {messageId: id},
       headers: { 'Content-Type': 'application/json' }
     });
   };
   return {sendMessage: sendMessage, removeMessage: removeMessage};
 }])
-.service('FriendService', ['$http', 'BaseURL',function($http, BaseURL) {
+.service('FriendService', ['$http', function($http) {
   var unfriend = function(id) {
     return $http({
       method: 'DELETE',
-      url: BaseURL + "unfriend",
+      url: "unfriend",
       data: {friendId: id},
       headers: { 'Content-Type': 'application/json' }
     });
@@ -125,7 +125,7 @@ angular.module("socialApplication")
   var addFriend = function(id) {
     return $http({
       method: 'POST',
-      url: BaseURL + 'addFriend',
+      url: 'addFriend',
       data: {friendId: id},
       headers: { 'Content-Type': 'application/json' }
     });
@@ -133,7 +133,7 @@ angular.module("socialApplication")
   var getFriends = function() {
     return $http({
       method: 'GET',
-      url: BaseURL + 'getFriends',
+      url: 'getFriends',
     });
   };
   return {unfriend: unfriend, addFriend: addFriend, getFriends: getFriends};
