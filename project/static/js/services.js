@@ -43,7 +43,14 @@ angular.module("socialApplication")
       params: {ids: JSON.stringify(ids)}
     });
   };
-  return { getUsernamesById: getUsernamesById };
+  var search = function(searchstring) {
+    return $http({
+      method: 'GET',
+      url: BaseURL + 'search',
+      params: {searchword: searchstring}
+    });
+  };
+  return { getUsernamesById: getUsernamesById, search: search };
 }])
 .service('ProfileService', ['$http', '$q', 'BaseURL', 'UserService', function($http, $q, BaseURL, UserService) {
   var getProfile = function(id) {
@@ -78,6 +85,13 @@ angular.module("socialApplication")
       });
     });
   };
+  var getUserById = function(id) {
+    return $http({
+      method: 'GET',
+      url: BaseURL + 'getUserById',
+      params: {id: id}
+    });
+  };
   return { getProfile: getProfile };
 }])
 .service('MessageService', ['$http', 'BaseURL', function($http, BaseURL) {
@@ -104,8 +118,23 @@ angular.module("socialApplication")
     return $http({
       method: 'DELETE',
       url: BaseURL + "unfriend",
-      data: {friendId: id}
+      data: {friendId: id},
+      headers: { 'Content-Type': 'application/json' }
     });
   };
-  return {unfriend: unfriend};
+  var addFriend = function(id) {
+    return $http({
+      method: 'POST',
+      url: BaseURL + 'addFriend',
+      data: {friendId: id},
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+  var getFriends = function() {
+    return $http({
+      method: 'GET',
+      url: BaseURL + 'getFriends',
+    });
+  };
+  return {unfriend: unfriend, addFriend: addFriend, getFriends: getFriends};
 }]);

@@ -25,7 +25,7 @@ describe('Route', function() {
     element(by.name('password')).sendKeys("hellothere");
     element(by.id('submit')).click();
 
-    browser.sleep(1000);
+    browser.sleep(100);
     // Expect to be logged in
     expect(browser.getCurrentUrl()).toMatch(/\/profile$/);
     expect(element(by.id('usernamelink')).getText()).toBe('uname');

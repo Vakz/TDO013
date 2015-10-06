@@ -1,6 +1,6 @@
 "use strict";
 angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
-.controller('TemplateController', ["$scope", "$localStorage", "$modal", function($scope, $localStorage, $modal) {
+.controller('TemplateController', ["$scope", "$localStorage", "$modal", "UserService", '$location', function($scope, $localStorage, $modal, UserService, $location) {
   $scope.$storage = $localStorage.$default({loggedIn: false});
 
   $scope.open = function() {
@@ -9,6 +9,17 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
       controller: 'OptionsController',
       size: 'sm'
     });
+  };
+
+  $scope.search = function($viewValue) {
+    return UserService.search($viewValue)
+    .then(function(res) {
+      return res.data;
+    });
+  };
+
+  $scope.onSelect = function($item) {
+    $location.path('/profile/' + $item._id);
   };
 }])
 .controller('DropdownCtrl', ["$scope", "AuthService", "$location", function($scope, AuthService, $location) {
@@ -59,20 +70,38 @@ angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
     };
 
 }])
-.controller('ProfileController', ['$scope', '$routeParams', 'ProfileService', 'FriendService', function($scope, $routeParams, ProfileService, FriendService) {
-  $scope.error = "";
-  $scope.id = $routeParams.id || $scope.$storage._id;
+.controller('ProfileController', ['$scope', '$route', '$routeParams', 'ProfileService', 'UserService', 'FriendService',
+function($scope, $route, $routeParams, ProfileService, UserService, FriendService) {
+  angular.extend($scope, {
+    isFriend: false,
+    error: "",
+    id: $routeParams.id || $scope.$storage._id,
+  });
   $scope.ownProfile = $scope.id === $scope.$storage._id;
   ProfileService.getProfile($scope.id)
   .then(function(profile) {
+    $scope.isFriend = true;
     angular.extend($scope, profile);
+    if ($scope.ownProfile) {
+      FriendService.getFriends()
+      .then(function(users) {
+        console.dir(users);
+        $scope.friends = users.data;
+      });
+    }
   },
   function(err) {
-    $scope.error = err.message;
+    UserService.getUsernamesById([$scope.id])
+    .then(function(user) {
+      if(user.data.length > 0) angular.extend($scope, user.data[0]);
+      else $scope.error = "No user with that id";
+    });
   });
 
-  $scope.unfriend = function() {
-    FriendService.unfriend($scope.id);
+  $scope.manageFriend = function() {
+    if ($scope.isFriend) FriendService.unfriend($scope.id);
+    else FriendService.addFriend($scope.id);
+    $route.reload();
   };
 }])
 .controller('MessageController', ['$scope', 'MessageService', function($scope, MessageService) {

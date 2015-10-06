@@ -51,7 +51,7 @@ describe('Route', function() {
     expect(submitButton.isEnabled()).toBe(true);
     submitButton.click();
     // Wait 1 seconds for server to respond
-    browser.wait(complete, 1000);
+    browser.wait(complete, 100);
     expect(element(by.id('usernamelink')).getText()).toBe('uname');
   });
 
@@ -64,7 +64,7 @@ describe('Route', function() {
 
     element(by.id('submit')).click();
     // Give server one second to respond
-    browser.sleep(1000);
+    browser.sleep(100);
     expect(element(by.css('.bg-danger')).isPresent()).toBe(true);
   });
 

@@ -33,6 +33,7 @@ let errorHandler = function(response, err) {
     response.status(503).send(err.message);
   }
   else {
+    console.error(err.stack);
     response.status(500).send(err.message);
   }
 };
@@ -52,6 +53,8 @@ let RequestHandler = function(dbHandler) {
     });
   };
 
+  var cleanConfidential = (users) => users.map((user) => ({ _id: user._id, username: user.username}));
+
   this.getUsersById = function(req, res) {
     if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamId));
@@ -60,8 +63,7 @@ let RequestHandler = function(dbHandler) {
       if(!Array.isArray(ids)) errorHandler(res, new ArgumentError(strings.invalidIds));
       else {
         dbHandler.getManyById(ids)
-        .then((users) => res.status(200).json(
-            users.map((user) => ({ _id: user._id, username: user.username}))),
+        .then((users) => res.status(200).json(cleanConfidential(users)),
           (err) => errorHandler(res, err));
       }
     }
@@ -244,7 +246,11 @@ let RequestHandler = function(dbHandler) {
     if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else {
       dbHandler.getFriendships(req.session._id)
-      .then((friends) => res.status(200).json(friends))
+      .then(function(friends) {
+        return friends.map((rel) => req.session._id === rel.first ? rel.second : rel.first);
+      })
+      .then((ids) => dbHandler.getManyById(ids))
+      .then((friends) => res.status(200).json(cleanConfidential(friends)))
       .catch((err) => errorHandler(res, err));
     }
   };

@@ -3,11 +3,11 @@
     <h3 class="col-xs-5">{{ username }}
     <small>
       <span ng-if="id === $storage._id">This is you!</span>
-      <button ng-click="unfriend()" class="btn btn-link" ng-if="id !== $storage._id">Unfriend</button>
+      <button ng-click="manageFriend()" class="btn btn-link" ng-if="id !== $storage._id">{{ isFriend ? 'Unfriend' : 'Add friend' }}</button>
     </small>
   </h3>
   </div>
-  <tabset class="voffset6">
+  <tabset ng-if="isFriend" class="voffset6">
     <tab id="messageTab" heading="Messages" >
       <div ng-controller="MessageController">
         <form class="form-horizontal col-xs-10" name="messageform" ng-submit="submit(messagebox)" novalidate>
@@ -28,7 +28,11 @@
       </div>
     </tab>
     <tab heading="Images">
-
+    </tab>
+    <tab ng-if="ownProfile" heading="Friends">
+      <h4 ng-repeat="user in friends" >
+        <a ng-href="{{'/#/profile/' + user._id}}">{{user.username}}</a>
+      </h4>
     </tab>
   </tabset>
 </div>

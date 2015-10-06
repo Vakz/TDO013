@@ -6,7 +6,7 @@
 - ✓ When logged in, save id, username and simple "logged in"-variable in local storage
 - ✓ Redirect to login if not logged in
 - ✓ Default to own profile after logging in, or entering /profile without id
-- ✗ When searching, get suggestions in a dropdown list (use debounce)
+- ✓ When searching, get suggestions in a dropdown list (use debounce)
 - ✓ Button to options
 
 #### Options
@@ -14,11 +14,10 @@
 - ✓ Log out everywhere (reset token)
 
 #### Profiles
+- ✓ Show error and "add friend"-button when looking at profile of non-friend
+- ✓ Hide tabs when not on "friendly" page
 - ✗ Tabs for showing messages or showing friends (eventually add showing images)
 - ✓ Show input at the top for writing a new message. Show preview. (only on message tab)
-
-#### Search
-- ✗ Repurpose friendslist (write directive?)
 
 # Backend
 ### mongodb

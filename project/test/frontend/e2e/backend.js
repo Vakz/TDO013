@@ -19,6 +19,8 @@ module.exports = function() {
       return [204];
     });
     $httpBackend.when('GET', /getProfile/).respond(function(method, url, data) {
+      if (/=nonfriend/.test(url)) return [403];
+      else if (/bbb/.test(url)) return [200, {_id: 'bbb', 'username': 'friend', messages: []}];
       return [200, {_id: 'aaa', username: 'uname',
       messages: [{from: 'bbb', to: 'aaa', _id:'messageid', message:'hellofriend',
                   time: Date.now()
@@ -26,7 +28,7 @@ module.exports = function() {
       }];
     });
     $httpBackend.when('GET', /getUsersById/).respond(function() {
-      return [200, [{_id: 'bbb', username: 'otheruser'}]];
+      return [200, [{_id: 'nonfriend', username: "notyourfriend"}, {_id: 'bbb', username: 'otheruser'}]];
     });
     $httpBackend.when('DELETE', /deleteMessage/).respond(function() {
       return [204];
@@ -40,6 +42,9 @@ module.exports = function() {
     });
     $httpBackend.when('PUT', /resetSessions/).respond(function() {
       return [204];
+    });
+    $httpBackend.when('GET', /getFriends/).respond(function() {
+      return [200, [{_id: 'idofuserone', username: 'userone'}, {_id: 'idofusertwo', username: 'usertwo'}]];
     });
     $httpBackend.when('GET', /partials|js|css/).passThrough();
   }]);

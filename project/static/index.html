@@ -33,7 +33,7 @@
         <form ng-show="$storage.loggedIn" id="searchform" class="alignHeader form-inline" class="col-xs-4 col-sm-4">
           <div class="form-group">
             <label class="sr-only" for="searchinput">Search</label>
-            <input id="searchinput" type="search" class="form-control" placeholder="Search">
+            <input id="searchinput" type="search" typeahead="user as user.username for user in search($viewValue)" typeahead-wait-ms="200" typeahead-focus-first="true" typeahead-on-select="onSelect($item)" ng-model="searchinput" typeahead-no-results="noResults" typeahead-loading="pending" class="form-control" placeholder="Search">
           </div>
         </form>
       </div>

@@ -45,7 +45,7 @@ describe('Login', function() {
     expect(submitButton.isEnabled()).toBe(true);
     submitButton.click();
     // Wait 1 seconds for server to respond
-    browser.wait(complete, 1000);
+    browser.wait(complete, 100);
     expect(element(by.id('usernamelink')).getText()).toBe('uname');
   });
 
@@ -54,7 +54,7 @@ describe('Login', function() {
     element(by.name('username')).sendKeys("uname");
     element(by.name('password')).sendKeys("wrongpassword");
     element(by.id('submit')).click();
-    browser.sleep(1000);
+    browser.sleep(100);
 
     // Assert error message is shown
     expect(element(by.css('.bg-danger')).isPresent()).toBe(true);
