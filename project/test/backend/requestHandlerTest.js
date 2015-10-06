@@ -323,10 +323,10 @@ describe('RequestHandler', function() {
     });
 
     describe('logout without being logged in', function() {
-      it('should return an 400', function(done) {
+      it('should return an 403', function(done) {
         let req = httpMocks.createRequest({method: 'POST', url: '/logout'});
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           done();
         });
 
@@ -339,10 +339,10 @@ describe('RequestHandler', function() {
 
   describe('resetSessions', function() {
     describe('try to reset without being logged in', function() {
-      it('it should return 400', function(done) {
+      it('it should return 403', function(done) {
         let req = httpMocks.createRequest({method: 'PUT', url: '/resetSessions'});
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           done();
         });
 
@@ -469,10 +469,10 @@ describe('RequestHandler', function() {
     });
 
     describe('Attempt to update when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method: 'PUT', url: '/updatePassword'});
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           done();
         });
         req.session = {};
@@ -546,11 +546,11 @@ describe('RequestHandler', function() {
     });
 
     describe('Attempt to get without being logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method:'GET', url: '/getProfile'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           done();
         });
         reqHandler.getProfile(req, res);
@@ -587,11 +587,11 @@ describe('RequestHandler', function() {
 
   describe('search', function() {
     describe('search when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method:'GET', url:'/search'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           done();
         });
         reqHandler.search(req, res);
@@ -645,11 +645,11 @@ describe('RequestHandler', function() {
                             body: {receiver: id, message: msg}});
 
     describe('send when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = makeRequest((new ObjectId()).toString(), 'hello');
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           done();
         });
         reqHandler.sendMessage(req, res);
@@ -749,11 +749,11 @@ describe('RequestHandler', function() {
 
   describe('deleteMessage', function() {
     describe('delete when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method:'DELETE', url:'/deleteMessage'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           data.should.equal(strings.notLoggedIn);
           done();
         });
@@ -850,11 +850,11 @@ describe('RequestHandler', function() {
 
   describe('addFriend', function() {
     describe('add friend when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method: 'POST', url:'/addFriend'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           data.should.equal(strings.notLoggedIn);
           done();
         });
@@ -930,11 +930,11 @@ describe('RequestHandler', function() {
 
   describe('unfriend', function() {
     describe('remove friend when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method: 'DELETE', url:'/unfriend'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           data.should.equal(strings.notLoggedIn);
           done();
         });
@@ -1010,11 +1010,11 @@ describe('RequestHandler', function() {
 
   describe('checkIfFriends', function() {
     describe('check friend when not logged in', function() {
-      it('should return 400', function(done) {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method: 'GET', url:'/checkIfFriends'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           data.should.equal(strings.notLoggedIn);
           done();
         });
@@ -1110,12 +1110,12 @@ describe('RequestHandler', function() {
   });
 
   describe('getFriends', function() {
-    describe('check friend when not logged in', function() {
-      it('should return 400', function(done) {
+    describe('get friend when not logged in', function() {
+      it('should return 403', function(done) {
         let req = httpMocks.createRequest({method: 'GET', url:'/getFriends'});
         req.session = {};
         let res = setupResponse(function(data) {
-          res.statusCode.should.equal(400);
+          res.statusCode.should.equal(403);
           data.should.equal(strings.notLoggedIn);
           done();
         });

@@ -28,7 +28,7 @@ describe('Profile', function() {
 
   it('should get valid profile', function() {
     browser.get('/#/profile/aaa');
-    expect(element(by.css('h1')).getText()).toBe('uname');
+    expect(element.all(by.css('h3')).get(1).getText()).toMatch(/^uname\s/);
     expect(element.all(by.css('.messagetext')).last().getText()).toBe('hellofriend');
   });
 

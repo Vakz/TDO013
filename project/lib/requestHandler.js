@@ -5,6 +5,7 @@ process.env.NODE_ENV = 'test';
 let ArgumentError = require('./errors').ArgumentError;
 let DatabaseError = require('./errors').DatabaseError;
 let SemanticsError = require('./errors').SemanticsError;
+let AuthenticationError = require('./errors').AuthenticationError;
 
 let UserSecurity = require('./userSecurity');
 let config = require('./config');
@@ -19,6 +20,14 @@ let errorHandler = function(response, err) {
   }
   else if (err instanceof SemanticsError) {
     response.status(422).send(err.message);
+  }
+  else if (err instanceof AuthenticationError) {
+    /*
+      401 would be more appropriate here, but due to the constraint of having
+      to include a WWW-authenticate header, and me not wanting to implement
+      basic HTTP authentication, 403 will have to do.
+    */
+    response.status(403).send(err.message);
   }
   else if (err instanceof DatabaseError) {
     response.status(503).send(err.message);
@@ -44,7 +53,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.getUsersById = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamId));
     else {
       let ids = JSON.parse(req.query.ids);
@@ -96,7 +105,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.logout = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else {
       req.session.reset();
       res.sendStatus(204);
@@ -104,7 +113,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.resetSessions = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else {
       dbHandler.updateToken(req.session._id)
       .then(() => scope.logout(req, res))
@@ -113,7 +122,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.updatePassword = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.body.password) errorHandler(res, new ArgumentError(strings.noParamPassword));
     else if(req.body.password.length < config.get('security:passwords:minLength'))
       errorHandler(res, new ArgumentError(strings.passwordTooShort));
@@ -129,7 +138,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.getProfile = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.query.id) errorHandler(res, new ArgumentError(strings.noParamId));
     else {
       hasAccess(req.query.id, req)
@@ -150,7 +159,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.search = function(req, res) {
-    if(!req.session.loggedIn) errorHandler(res, new ArgumentError("User not logged in"));
+    if(!req.session.loggedIn) errorHandler(res, new AuthenticationError("User not logged in"));
     else if(!req.query.searchword) errorHandler(res, new ArgumentError("Missing parameter 'searchword'"));
     else {
       dbHandler.searchUsers(req.query.searchword)
@@ -164,7 +173,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.sendMessage = function(req, res) {
-    if(!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if(!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if(!req.body.receiver) errorHandler(res, new ArgumentError(strings.noParamReceiver));
     else if(!req.body.message) errorHandler(res, new ArgumentError(strings.noParamMessage));
     else if(req.body.message.length > config.get('messages:maxLength')) errorHandler(res, new SemanticsError(strings.messageTooLong));
@@ -180,7 +189,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.deleteMessage = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.body.messageId) errorHandler(res, new ArgumentError(strings.noParamMessageId));
     else {
       dbHandler.getMessage(req.body.messageId)
@@ -197,7 +206,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.addFriend = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.body.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
     else {
       dbHandler.newFriendship(req.session._id, req.body.friendId)
@@ -207,7 +216,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.unfriend = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.body.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
     else {
       dbHandler.unfriend(req.session._id, req.body.friendId)
@@ -222,7 +231,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.checkIfFriends = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else if (!req.query.friendId) errorHandler(res, new ArgumentError(strings.noParamFriendId));
     else {
       dbHandler.checkIfFriends(req.session._id, req.query.friendId)
@@ -232,7 +241,7 @@ let RequestHandler = function(dbHandler) {
   };
 
   this.getFriends = function(req, res) {
-    if (!req.session.loggedIn) errorHandler(res, new ArgumentError(strings.notLoggedIn));
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
     else {
       dbHandler.getFriendships(req.session._id)
       .then((friends) => res.status(200).json(friends))

@@ -17,7 +17,12 @@ function SemanticsError(message) {
 }
 util.inherits(SemanticsError, Error);
 
+function AuthenticationError(message) {
+  this.message = message;
+}
+util.inherits(AuthenticationError, Error);
 
+exports.AuthenticationError = AuthenticationError;
 exports.ArgumentError = ArgumentError;
 exports.DatabaseError = DatabaseError;
 exports.SemanticsError = SemanticsError;
