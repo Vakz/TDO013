@@ -1,6 +1,6 @@
 <div class="row col-xs-12" id="profilecontent">
   <div class="row">
-    <h3 class="col-xs-5">{{ username }}
+    <h3 class="col-xs-6">{{ username }}
     <small>
       <span ng-if="id === $storage._id">This is you!</span>
       <button ng-click="manageFriend()" class="btn btn-link" ng-if="id !== $storage._id">{{ isFriend ? 'Unfriend' : 'Add friend' }}</button>

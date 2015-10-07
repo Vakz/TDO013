@@ -24,9 +24,12 @@ var Chat = function(httpServer, dbHandler) {
   var setupSocket = function(user) {
     user.socket.on('disconnect', function() {
       var u = activeUsers.get(user._id);
-      if(u && u.sockets.length < 2) activeUsers.delete(user.info._id);
-      else {
-        u.sockets.splice(u.sockets.indexOf(user.socket), 1);
+      // Watch out for leaks
+      if (u) {
+        if(u.sockets.length === 1) activeUsers.delete(user.info._id);
+        else {
+          u.sockets.splice(u.sockets.indexOf(user.socket), 1);
+        }
       }
     });
 
