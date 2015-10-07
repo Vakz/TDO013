@@ -41,8 +41,8 @@ function($scope, $localStorage, $modal, UserService, $location) {
     .then(() => $location.path('/login'));
   };
 }])
-.controller('AuthController', ['$scope', '$location', '$localStorage', 'AuthService',
-  function($scope, $location, $localStorage, AuthService) {
+.controller('AuthController', ['$scope', '$location', '$localStorage', 'AuthService', 'ChatService',
+  function($scope, $location, $localStorage, AuthService, ChatService) {
     $scope.login = /\/login$/.test($location.path());
     angular.extend($scope, {
       pattern: /[\w\d._]+/,
@@ -59,6 +59,7 @@ function($scope, $localStorage, $modal, UserService, $location) {
         authcall.then(function(res) {
           angular.extend($localStorage, res.data, {loggedIn: true});
           $location.path('/profile');
+          ChatService.start();
         }, function(err) {
           $scope.error = err.data;
           $scope.errors.loginError = true;

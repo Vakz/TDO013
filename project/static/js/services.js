@@ -141,11 +141,13 @@ angular.module("socialApplication")
 .service('ChatService', ['$rootScope', '$localStorage', function($rootScope, $localStorage) {
   var socket = null;
   var active = null;
+  var isRunning = false;
   var chats = new Map();
 
     var start = function() {
+      if (running) return;
       socket = io();
-
+      running = true;
       socket.on('chatmessage', function(message) {
         // If message.fromId is same as the one stored in localStorage, we are receiving
         // our copy of a message we sent ourselves
