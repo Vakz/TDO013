@@ -145,9 +145,9 @@ angular.module("socialApplication")
   var chats = new Map();
 
     var start = function() {
-      if (running) return;
+      if (isRunning) return;
       socket = io();
-      running = true;
+      isRunning = true;
       socket.on('chatmessage', function(message) {
         // If message.fromId is same as the one stored in localStorage, we are receiving
         // our copy of a message we sent ourselves
