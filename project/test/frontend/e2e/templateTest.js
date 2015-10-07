@@ -31,9 +31,10 @@ describe('Template', function() {
     element(by.id('submit')).click();
     browser.sleep(100);
 
-    element(by.id('optionsbutton')).click();
-    expect(element(by.css('.btn-group')).getAttribute('class')).toMatch(/\sopen(\s|$)/);
-    element.all(by.id('options')).click();
+    let optionsButton = element(by.id('optionsbutton'));
+    optionsButton.click();
+    expect(optionsButton.element(by.xpath('..')).getAttribute('class')).toMatch(/\sopen(\s|$)/);
+    element(by.id('options')).click();
     expect(element(by.css('.modal-content')).isPresent()).toBe(true);
   });
 

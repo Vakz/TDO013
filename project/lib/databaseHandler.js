@@ -228,7 +228,8 @@ let DatabaseHandler = function() {
     });
   };
 
-  this.getMessages = function(id) {
+  this.getMessages = function(id, after) {
+    after = after || 0;
     return Q.Promise(function(resolve, reject, notify) {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
@@ -236,7 +237,7 @@ let DatabaseHandler = function() {
         reject(new ArgumentError(strings.invalidId));
       }
       else {
-        getCollection(config.get('database:collections:messages')).find({to: id}).sort({time: 1}).toArray()
+        getCollection(config.get('database:collections:messages')).find({to: id, time: {$gt: after}}).sort({time: 1}).toArray()
         .then(resolve)
         .catch(reject);
       }

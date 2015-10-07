@@ -33,8 +33,9 @@ describe('Route', function() {
     browser.setLocation('login');
     expect(browser.getCurrentUrl()).toMatch(/\/profile$/);
     // Expect to have been rerouted back to /profile
-    element(by.id('optionsbutton')).click();
-    expect(element(by.css('.btn-group')).getAttribute('class')).toMatch(/\sopen(\s|$)/);
+    let optionsButton = element(by.id('optionsbutton'));
+    optionsButton.click();
+    expect(optionsButton.element(by.xpath('..')).getAttribute('class')).toMatch(/\sopen(\s|$)/);
     element.all(by.id('logout')).click();
     expect(browser.getCurrentUrl()).toMatch(/\login$/);
     expect(element(by.id('usernamelink')).getText()).toBe('Not logged in');

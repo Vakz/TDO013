@@ -640,6 +640,119 @@ describe('RequestHandler', function() {
     });
   });
 
+  describe('getMessages', function() {
+    describe('Get messages from user with single message', function() {
+      let users = null;
+      let message = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'a'))
+        .then((res) => message = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return the message', function(done) {
+        let req = httpMocks.createRequest({method:'GET', url: 'getMessages?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+          JSON.parse(data)[0]._id.should.equal(message._id);
+          done();
+        });
+        reqHandler.getMessages(req, res);
+      });
+    });
+
+    describe('send when not logged in', function() {
+      it('should return 403', function(done) {
+        let req = httpMocks.createRequest({method:'GET', url: 'getMessages'});
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(403);
+          done();
+        });
+        reqHandler.getMessages(req, res);
+      });
+    });
+
+    describe('omit id', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method:'GET', url: 'getMessages'});
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.getMessages(req, res);
+      });
+    });
+
+    describe('Attempt to get without being friends', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url: '/getMessages?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.getMessages(req, res);
+      });
+    });
+
+    describe('Get message sent after certain time', function() {
+      let users = null;
+      let messages = [];
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'a'))
+        .then((res) => messages.push(res))
+        .then(() => dbHandler.newMessage(users[0]._id, users[1]._id, 'b'))
+        .then((res) => messages.push(res))
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return the message', function(done) {
+        let req = httpMocks.createRequest({method:'GET', url: 'getMessages?id=' + users[1]._id + '&after=' + messages[0].time});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          console.log(data);
+          res.statusCode.should.equal(200);
+          JSON.parse(data)[0]._id.should.equal(messages[1]._id);
+          done();
+        });
+        reqHandler.getMessages(req, res);
+      });
+    });
+  });
+
   describe('sendMessage', function() {
     let makeRequest = (id, msg) => httpMocks.createRequest({method:'POST', url:'/sendMessage',
                             body: {receiver: id, message: msg}});

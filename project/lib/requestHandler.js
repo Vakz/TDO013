@@ -57,7 +57,7 @@ let RequestHandler = function(dbHandler) {
 
   this.getUsersById = function(req, res) {
     if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
-    else if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamId));
+    else if (!req.query.ids) errorHandler(res, new ArgumentError(strings.noParamIds));
     else {
       let ids = JSON.parse(req.query.ids);
       if(!Array.isArray(ids)) errorHandler(res, new ArgumentError(strings.invalidIds));
@@ -154,6 +154,19 @@ let RequestHandler = function(dbHandler) {
           .then(() => resolve(params), reject);
         });
       })
+      .then((result) => res.status(200).json(result))
+      .catch((err) => errorHandler(res, err))
+      .done();
+    }
+  };
+
+  this.getMessages = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
+    else if (!req.query.id) errorHandler(res, new ArgumentError(strings.noParamId));
+    else {
+      hasAccess(req.query.id, req)
+      .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
+      .then(() => dbHandler.getMessages(req.query.id, req.query.after ? Number.parseInt(req.query.after) : 0))
       .then((result) => res.status(200).json(result))
       .catch((err) => errorHandler(res, err))
       .done();

@@ -69,6 +69,8 @@ let SocialServer = function(){
 
     app.get('/getFriends', requestHandler.getFriends);
 
+    app.get('/getMessages', requestHandler.getMessages);
+
     app.use(function(req, res) {
       res.sendStatus(404);
     });
