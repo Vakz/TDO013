@@ -44,6 +44,10 @@ let RequestHandler = function(dbHandler) {
   let scope = this;
   let profileWatcher = new ProfileWatcher(dbHandler);
 
+  this.close = function() {
+    profileWatcher.stop();
+  };
+
   let hasAccess = function(id, req) {
     return Q.Promise(function(resolve, reject, notify) {
       if(id === req.session._id) resolve(true);

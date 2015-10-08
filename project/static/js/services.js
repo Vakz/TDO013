@@ -80,6 +80,7 @@ angular.module("socialApplication")
         resolve(profile);
       })
       .catch(function(err) {
+        if(err.status === 403) $rootScope.$broadcast('UnexpectedLoggedOut');
         reject(new Error(err.data));
       });
     });
@@ -150,26 +151,26 @@ angular.module("socialApplication")
   var isRunning = false;
   var chats = new Map();
 
-    var start = function() {
-      if (isRunning) return;
-      socket = io(':45556');
-      isRunning = true;
-      socket.on('chatmessage', function(message) {
-        // If message.fromId is same as the one stored in localStorage, we are receiving
-        // our copy of a message we sent ourselves
-        var id = message.fromId;
-        var username = message.fromUsername;
-        if (message.fromId === $localStorage._id) {
-          id = message.toId;
-          username = message.toUsername;
-        }
-        if(!chats.has(id)) {
-          newChat(id, username);
-        }
-        chats.get(id).messages.push(message);
-        $rootScope.$digest();
-      });
-    };
+  var start = function() {
+    if (isRunning) return;
+    socket = io(':45556');
+    isRunning = true;
+    socket.on('chatmessage', function(message) {
+      // If message.fromId is same as the one stored in localStorage, we are receiving
+      // our copy of a message we sent ourselves
+      var id = message.fromId;
+      var username = message.fromUsername;
+      if (message.fromId === $localStorage._id) {
+        id = message.toId;
+        username = message.toUsername;
+      }
+      if(!chats.has(id)) {
+        newChat(id, username);
+      }
+      chats.get(id).messages.push(message);
+      $rootScope.$digest();
+    });
+  };
 
   var newChat = function(id, username) {
     if (!chats.has(id)) {

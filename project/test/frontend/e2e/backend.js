@@ -1,6 +1,6 @@
 module.exports = function() {
   angular.module('httpBackendMock', ['socialApplication', 'ngMockE2E'])
-  .run(['$httpBackend', function($httpBackend) {
+  .run(['$httpBackend', '$rootScope', function($httpBackend, $rootScope) {
     $httpBackend.when('POST', /register/).respond(function(method, url, data) {
       data = JSON.parse(data);
       if (data.username === 'uname' && data.password === 'hellothere') {
@@ -35,6 +35,7 @@ module.exports = function() {
     });
     $httpBackend.when('POST', /sendMessage/).respond(function(method, url, data) {
       data = JSON.parse(data);
+      $rootScope.$broadcast('NewProfileMessage', {_id: 'nicemessageid', from: 'aaa', to: 'aaa', message: data.message, time: Date.now(), username: 'someguy'});
       return [200, {_id: 'nicemessageid', from: 'aaa', to: 'aaa', message: data.message, time: Date.now()}];
     });
     $httpBackend.when('PUT', /updatePassword/).respond(function() {

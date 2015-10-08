@@ -11,6 +11,10 @@ var Chat = function(dbHandler) {
   let io = require('socket.io')(config.get('chat:port'));
   let activeUsers = new Map();
 
+  this.stop = function() {
+    io.close();
+  };
+
   var getUserInfo = function(cookie) {
     let matchCookie = /(?:\s|^)session=([^\s]+)/.exec(cookie);
     if (!matchCookie || matchCookie.length < 2) return null; // Session cookie not set

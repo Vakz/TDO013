@@ -93,6 +93,8 @@ let SocialServer = function(){
 
   this.stop = function() {
     server.close();
+    chat.stop();
+    requestHandler.close();
   };
 };
 

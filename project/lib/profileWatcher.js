@@ -11,6 +11,10 @@ let io = require('socket.io')(config.get('server:profileWatchPort'));
 let ProfileWatcher = function(dbHandler) {
   let watchers = new Map();
 
+  this.stop = function() {
+    io.close();
+  };
+
   let hasAccess = function(id, requester) {
     return Q.Promise(function(resolve, reject, notify) {
       if(id === requester) resolve(true);

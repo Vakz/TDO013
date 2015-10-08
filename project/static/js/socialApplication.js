@@ -38,6 +38,10 @@ var app = angular.module('socialApplication', ['ngRoute', 'ngAnimate', 'ui.boots
       });
     }
   });
+  $rootScope.$on('UnexpectedLoggedOut', function() {
+    $localStorage.$reset();
+    $location.path('/login');
+  });
   if ($localStorage.loggedIn) {
     ChatService.start();
     ProfileWatchService.start();
