@@ -28,7 +28,8 @@ nconf.defaults({
     }
   },
   server: {
-    port: 45555
+    port: 45555,
+    profileWatchPort: 45557
   },
   users: {
     acceptableCharacters: "\\w\\d._",
@@ -38,6 +39,7 @@ nconf.defaults({
     maxLength: 200
   },
   chat: {
+    port: 45556,
     maxLength: 100
   }
 });

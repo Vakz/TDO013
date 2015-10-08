@@ -7,9 +7,10 @@ let DatabaseError = require('./errors').DatabaseError;
 let SemanticsError = require('./errors').SemanticsError;
 let AuthenticationError = require('./errors').AuthenticationError;
 
+let strings = require('./strings');
 let UserSecurity = require('./userSecurity');
 let config = require('./config');
-let strings = require('./strings');
+let ProfileWatcher = require('./profileWatcher');
 
 let Q = require('q');
 let sanitizer = require('sanitizer');
@@ -41,6 +42,7 @@ let errorHandler = function(response, err) {
 let RequestHandler = function(dbHandler) {
 
   let scope = this;
+  let profileWatcher = new ProfileWatcher(dbHandler);
 
   let hasAccess = function(id, req) {
     return Q.Promise(function(resolve, reject, notify) {
@@ -197,6 +199,10 @@ let RequestHandler = function(dbHandler) {
       hasAccess(req.body.receiver, req)
       .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
       .then(() => dbHandler.newMessage(req.session._id, req.body.receiver, msg))
+      .then(function(msg) {
+        profileWatcher.notify(msg);
+        return msg;
+      })
       .then((msg) => res.status(200).json(msg))
       .catch((err) => errorHandler(res, err))
       .done();

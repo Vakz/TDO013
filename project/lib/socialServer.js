@@ -82,7 +82,7 @@ let SocialServer = function(){
       dbHandler.connect()
       .then(function() {
         server = app.listen(config.get('server:port'));
-        chat = new (require('./chat'))(server, dbHandler);
+        chat = new (require('./chat'))(dbHandler);
       })
       .done();
     }

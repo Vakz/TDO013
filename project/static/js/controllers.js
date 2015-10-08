@@ -69,8 +69,12 @@ function($scope, $localStorage, $modal, UserService, $location) {
     };
 
 }])
-.controller('ProfileController', ['$scope', '$route', '$routeParams', 'ProfileService', 'UserService', 'FriendService', 'ChatService',
-function($scope, $route, $routeParams, ProfileService, UserService, FriendService, ChatService) {
+.controller('ProfileController', ['$rootScope', '$scope', '$route', '$routeParams', 'ProfileService', 'UserService', 'FriendService', 'ChatService', 'MessageService',
+function($rootScope, $scope, $route, $routeParams, ProfileService, UserService, FriendService, ChatService, MessageService) {
+  var sortMessages = function(a, b) {
+    return (a.time > b.time);
+  };
+
   angular.extend($scope, {
     isFriend: false,
     error: "",
@@ -79,8 +83,10 @@ function($scope, $route, $routeParams, ProfileService, UserService, FriendServic
   $scope.ownProfile = $scope.id === $scope.$storage._id;
   ProfileService.getProfile($scope.id)
   .then(function(profile) {
+    profile.messages = profile.messages.sort(sortMessages);
     $scope.isFriend = true;
     angular.extend($scope, profile);
+    $rootScope.$broadcast('ProfileChanged', $scope.id);
     if ($scope.ownProfile) {
       FriendService.getFriends()
       .then(function(users) {
@@ -96,6 +102,13 @@ function($scope, $route, $routeParams, ProfileService, UserService, FriendServic
     });
   });
 
+  $rootScope.$on('NewProfileMessage', function(event, message) {
+    console.log(message);
+    if (!$scope.users.has(message.from)) $scope.users.set(message.from, message.username);
+    $scope.messages.push(message);
+    $rootScope.$digest();
+  });
+
   $scope.startChat = function() {
     ChatService.newChat($scope._id, $scope.username);
   };
@@ -106,7 +119,7 @@ function($scope, $route, $routeParams, ProfileService, UserService, FriendServic
     $route.reload();
   };
 }])
-.controller('MessageController', ['$scope', 'MessageService', function($scope, MessageService) {
+.controller('MessageController', ['$rootScope', '$scope', 'MessageService', function($rootScope, $scope, MessageService) {
   $scope.pending = false;
   $scope.submit = function(message) {
     $scope.errors = {};
@@ -116,7 +129,7 @@ function($scope, $route, $routeParams, ProfileService, UserService, FriendServic
       .then(function(res) {
         if (!$scope.users.has($scope.$storage._id)) $scope.users.set($scope.$storage._id, $scope.$storage.username);
         $scope.errors.messageError = false;
-        $scope.messages.push(res.data);
+        $rootScope.$broadcast('NewProfileMessages');
         $scope.messagebox = null;
         $scope.messageform.$setPristine();
       },

@@ -23,7 +23,7 @@ var app = angular.module('socialApplication', ['ngRoute', 'ngAnimate', 'ui.boots
     secure: true
   })
   .otherwise('/profile');
-}]).run(['$localStorage', '$location', '$rootScope', 'ChatService', function($localStorage, $location, $rootScope, ChatService ) {
+}]).run(['$localStorage', '$location', '$rootScope', 'ChatService', 'ProfileWatchService', function($localStorage, $location, $rootScope, ChatService, ProfileWatchService ) {
   $rootScope.$on('$routeChangeStart', function(e, next, current) {
     if (next.$$route && next.$$route.secure && !$localStorage.loggedIn) {
       e.preventDefault();
@@ -40,5 +40,6 @@ var app = angular.module('socialApplication', ['ngRoute', 'ngAnimate', 'ui.boots
   });
   if ($localStorage.loggedIn) {
     ChatService.start();
+    ProfileWatchService.start();
   }
 }]);

@@ -51,10 +51,9 @@ angular.module("socialApplication")
   };
   return { getUsernamesById: getUsernamesById, search: search };
 }])
-.service('ProfileService', ['$http', '$q', 'UserService', function($http, $q, UserService) {
+.service('ProfileService', ['$rootScope', '$http', '$q', 'UserService', function($rootScope, $http, $q, UserService) {
   var getProfile = function(id) {
     return $q(function(resolve, reject) {
-      console.log(  'getProfile');
       var profile;
       $http({
         method: 'GET',
@@ -111,7 +110,14 @@ angular.module("socialApplication")
       headers: { 'Content-Type': 'application/json' }
     });
   };
-  return {sendMessage: sendMessage, removeMessage: removeMessage};
+  var getMessages = function(id, after) {
+    return $http({
+      method: 'GET',
+      url: 'getMessages',
+      params: {id: id, after: (after || 0)}
+    });
+  };
+  return { sendMessage: sendMessage, removeMessage: removeMessage, getMessages: getMessages };
 }])
 .service('FriendService', ['$http', function($http) {
   var unfriend = function(id) {
@@ -146,7 +152,7 @@ angular.module("socialApplication")
 
     var start = function() {
       if (isRunning) return;
-      socket = io();
+      socket = io(':45556');
       isRunning = true;
       socket.on('chatmessage', function(message) {
         // If message.fromId is same as the one stored in localStorage, we are receiving
@@ -217,5 +223,32 @@ angular.module("socialApplication")
     getActive: getActive,
     getActiveChat: getActiveChat,
     send: send
+  };
+}])
+.service('ProfileWatchService', ['$rootScope', function($rootScope) {
+  var profileWatcher = null;
+  profileWatcher = new Worker('js/watcher.js');
+
+  var terminate = function() {
+    if (profileWatcher) profileWatcher.terminate();
+    profileWatcher = null;
+  };
+
+  this.start = function() {
+    profileWatcher.onmessage = function(message) {
+      $rootScope.$broadcast('NewProfileMessage', message.data);
+    };
+
+    $rootScope.$on('ProfileChanged', function(event, id) {
+      if (profileWatcher !== null) profileWatcher.postMessage({type: 'set', id: id});
+    });
+
+    $rootScope.$on('DisableProfileWatch', function() {
+      if (profileWatcher !== null) profileWatcher.postMessage({type: 'stop'});
+    });
+
+    $rootScope.$on('logout', function() {
+      terminate();
+    });
   };
 }]);

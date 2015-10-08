@@ -6,9 +6,9 @@ let strings = require('./strings');
 let sanitizer = require('sanitizer');
 let config = require('./config');
 
-var Chat = function(httpServer, dbHandler) {
+var Chat = function(dbHandler) {
   let socketgroup = 'chatmessage';
-  let io = require('socket.io')(httpServer);
+  let io = require('socket.io')(config.get('chat:port'));
   let activeUsers = new Map();
 
   var getUserInfo = function(cookie) {
