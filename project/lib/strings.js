@@ -34,7 +34,8 @@ var strings = {
   notFriends: "Not friends with target user",
   notOnline: "User is not online",
   sendSelf: "Don't send messages to yourself",
-  invalidMessage: 'Message object is invalid'
+  invalidMessage: 'Message object is invalid',
+  invalidImageName: 'Image name is invalid'
 };
 
 Object.freeze(strings);

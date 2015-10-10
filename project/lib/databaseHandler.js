@@ -216,6 +216,7 @@ let DatabaseHandler = function() {
 
   this.getMessage = function(id) {
     return Q.Promise(function(resolve, reject, notify) {
+      /* istanbul ignore if */
       if (!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(id)) {
         reject(new ArgumentError(strings.invalidId));
@@ -322,7 +323,7 @@ let DatabaseHandler = function() {
       /* istanbul ignore if */
       if(!connected) reject(new DatabaseError(strings.dbNotConnected));
       else if (!mongodb.ObjectId.isValid(first) || !mongodb.ObjectId.isValid(second)) {
-        reject(new ArgumentError("Invalid id"));
+        reject(new ArgumentError(strings.invalidId));
       }
       else  {
         if (first > second) first = [second, second = first][0];
@@ -336,7 +337,50 @@ let DatabaseHandler = function() {
     });
   };
 
+  this.addImage = function(owner, imageName) {
+    return Q.Promise(function(resolve, reject, notify) {
+      /* istanbul ignore if */
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
+      else if (!mongodb.ObjectId.isValid(owner)) reject(new ArgumentError(strings.invalidId));
+      else if (!imageName || typeof imageName !== 'string' || !imageName.trim()) reject(new ArgumentError(strings.invalidImageName));
+      else {
+        scope.getUser({_id: owner})
+        .then(() => getCollection(config.get('database:collections:images'))
+          .insert({_id: generateId(), owner: owner, name: imageName}))
+        .then((res) => resolve(res.ops[0]))
+        .catch(reject);
+      }
+    });
+  };
 
+  this.getImages = function(owner) {
+    return Q.Promise(function(resolve, reject, notify) {
+      /* istanbul ignore if */
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
+      else if (!mongodb.ObjectId.isValid(owner)) reject(new ArgumentError(strings.invalidId));
+      else {
+        getCollection(config.get('database:collections:images')).find({owner: owner}).toArray()
+        .then(resolve)
+        .catch(reject);
+      }
+    });
+  };
+
+  this.deleteImage = function(imageId) {
+    return Q.Promise(function(resolve, reject, notify) {
+      /* istanbul ignore if */
+      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
+      else if (!mongodb.ObjectId.isValid(imageId)) reject(new ArgumentError(strings.invalidId));
+      else {
+        getCollection(config.get('database:collections:images'))
+        .remove({_id: imageId})
+        .then(function(res) {
+          resolve(res.result.n ? true : false);
+        })
+        .catch(reject);
+      }
+    });
+  };
 };
 
 module.exports = DatabaseHandler;

@@ -277,6 +277,8 @@ let RequestHandler = function(dbHandler) {
       .catch((err) => errorHandler(res, err));
     }
   };
+
+  
 };
 
 module.exports = RequestHandler;

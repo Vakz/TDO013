@@ -11,7 +11,8 @@ nconf.defaults({
     collections: {
       auth: 'users',
       messages: 'messages',
-      friendships: 'friendships'
+      friendships: 'friendships',
+      images: 'images'
     },
   },
   security:{

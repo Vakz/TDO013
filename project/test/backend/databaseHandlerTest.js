@@ -861,7 +861,8 @@ describe('DatabaseHandler', function() {
         .then(function(m) {
           m.should.containDeep(message);
           done();
-        });
+        })
+        .done();
       });
     });
 
@@ -873,6 +874,129 @@ describe('DatabaseHandler', function() {
           err.message.should.equal(strings.invalidId);
           done();
         });
+      });
+    });
+  });
+
+  describe('addImage', function() {
+    describe('Attempt to add with invalid owner id', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.addImage('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          err.message.should.equal(strings.invalidId);
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Attemp to add without imagename', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.addImage((new ObjectId()).toString(), ' ')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          err.message.should.equal(strings.invalidImageName);
+          done()
+          .done();
+        });
+      });
+    });
+
+    describe('Add valid image', function() {
+      let user = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'usname', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return the image entry', function(done) {
+        dbHandler.addImage(user._id, 'image.jpg')
+        .then(function(res) {
+          res.owner.should.equal(user._id);
+          res.name.should.equal('image.jpg');
+          done();
+        })
+        .done();
+      });
+    });
+  });
+
+  describe('getImages', function() {
+    describe('Get images of owner with invalid id', function() {
+      it('should return ArgumentError', function(done) {
+        dbHandler.getImages('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Get images from user with one image', function() {
+      let user = null;
+      let image = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'usname', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => dbHandler.addImage(user._id, 'image.jpg'))
+        .then((res) => image = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return the image', function(done) {
+        dbHandler.getImages(user._id)
+        .then(function(res) {
+          res[0]._id.should.equal(image._id);
+          res[0].name.should.equal('image.jpg');
+          done();
+        })
+        .done();
+      });
+    });
+  });
+
+  describe('deleteImage', function() {
+    describe('Attemp to delete with invalid id', function() {
+      it('should return an ArgumentError', function(done) {
+        dbHandler.deleteImage('a')
+        .then(null, function(err) {
+          err.should.be.instanceOf(errors.ArgumentError);
+          done();
+        })
+        .done();
+      });
+    });
+
+    describe('Delete valid image', function() {
+      let user = null;
+      let image = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'usname', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => dbHandler.addImage(user._id, 'image.jpg'))
+        .then((res) => image = res)
+        .then(() => done())
+        .done();
+      });
+
+      after(cleanDb);
+
+      it('should return true', function(done) {
+        dbHandler.deleteImage(image._id)
+        .then(function(res) {
+          res.should.be(true);
+          done();
+        });
+        done();
       });
     });
   });
