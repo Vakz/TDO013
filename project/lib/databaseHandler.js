@@ -346,7 +346,7 @@ let DatabaseHandler = function() {
       else {
         scope.getUser({_id: owner})
         .then(() => getCollection(config.get('database:collections:images'))
-          .insert({_id: generateId(), owner: owner, name: imageName}))
+          .insert({_id: generateId(), owner: owner, name: imageName, time: Date.now()}))
         .then((res) => resolve(res.ops[0]))
         .catch(reject);
       }
@@ -361,22 +361,6 @@ let DatabaseHandler = function() {
       else {
         getCollection(config.get('database:collections:images')).find({owner: owner}).toArray()
         .then(resolve)
-        .catch(reject);
-      }
-    });
-  };
-
-  this.deleteImage = function(imageId) {
-    return Q.Promise(function(resolve, reject, notify) {
-      /* istanbul ignore if */
-      if(!connected) reject(new DatabaseError(strings.dbNotConnected));
-      else if (!mongodb.ObjectId.isValid(imageId)) reject(new ArgumentError(strings.invalidId));
-      else {
-        getCollection(config.get('database:collections:images'))
-        .remove({_id: imageId})
-        .then(function(res) {
-          resolve(res.result.n ? true : false);
-        })
         .catch(reject);
       }
     });

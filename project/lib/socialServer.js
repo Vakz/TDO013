@@ -8,6 +8,7 @@ let clientSessions = require('client-sessions');
 let UserSecurity = require('./userSecurity');
 let bodyParser = require('body-parser');
 let DatabaseHandler = require('./databaseHandler');
+var upload = require('multer')( { dest: 'static/images/', limits: { fileSize: 5 * 1000 * 1000 } } );
 
 let SocialServer = function(){
 
@@ -70,6 +71,8 @@ let SocialServer = function(){
     app.get('/getFriends', requestHandler.getFriends);
 
     app.get('/getMessages', requestHandler.getMessages);
+
+    app.post('/addImage', upload.single('file'), requestHandler.addImage);
 
     app.use(function(req, res) {
       res.sendStatus(404);

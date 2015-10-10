@@ -1,5 +1,5 @@
 "use strict";
-angular.module('socialSiteControllers', ['ngStorage', 'ngMessages'])
+angular.module('socialSiteControllers', ['ngStorage', 'ngMessages', 'ngFileUpload'])
 .controller('TemplateController', ["$scope", "$localStorage", "$modal", "UserService", '$location',
 function($scope, $localStorage, $modal, UserService, $location) {
   $scope.$storage = $localStorage.$default({loggedIn: false});
@@ -227,4 +227,20 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
   $scope.setActive = function(chat) {
     ChatService.setActive(chat.id, chat.username);
   };
+}])
+.controller('ImageController', ['$scope', 'Upload', function($scope, Upload) {
+  $scope.images = [];
+  $scope.$watch('file', function() {
+    if($scope.file && !$scope.file.$error) {
+      console.dir($scope.file);
+      Upload.upload({
+        url: '/addImage',
+        file: $scope.file
+      })
+      .success(function(data) {
+        $scope.images.push(data);
+      });
+    }
+
+  });
 }]);

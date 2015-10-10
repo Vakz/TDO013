@@ -278,7 +278,35 @@ let RequestHandler = function(dbHandler) {
     }
   };
 
-  
+  this.addImage = function(req, res) {
+    var error = false;
+    if (!req.session.loggedIn) {
+      errorHandler(res, new AuthenticationError(strings.notLoggedIn));
+      error = true;
+    }
+    else {
+      dbHandler.addImage(req.session._id, req.file.filename)
+      .then((image) => res.status(200).json(image))
+      .catch(function(err) {
+        errorHandler(res, err);
+        error = true;
+      });
+    }
+    // In case of error, delete the uploaded file
+    if (error) {
+      require('fs').unlink('static/image/' + req.file.filename);
+    }
+  };
+
+  this.getImages = function(req, res) {
+    if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
+    if (!req.query.id) errorHandler(res, new ArgumentError(strings.noParamId));
+    hasAccess(req.query.id, req)
+    .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
+    .then(() => dbHandler.getImages(req.query.id))
+    .then((images) => res.status(200).json(images))
+    .catch((err) => errorHandler(res, err));
+  };
 };
 
 module.exports = RequestHandler;

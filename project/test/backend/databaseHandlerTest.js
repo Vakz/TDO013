@@ -964,42 +964,5 @@ describe('DatabaseHandler', function() {
     });
   });
 
-  describe('deleteImage', function() {
-    describe('Attemp to delete with invalid id', function() {
-      it('should return an ArgumentError', function(done) {
-        dbHandler.deleteImage('a')
-        .then(null, function(err) {
-          err.should.be.instanceOf(errors.ArgumentError);
-          done();
-        })
-        .done();
-      });
-    });
-
-    describe('Delete valid image', function() {
-      let user = null;
-      let image = null;
-      before(function(done) {
-        dbHandler.registerUser({username: 'usname', password: 'pw'})
-        .then((res) => user = res)
-        .then(() => dbHandler.addImage(user._id, 'image.jpg'))
-        .then((res) => image = res)
-        .then(() => done())
-        .done();
-      });
-
-      after(cleanDb);
-
-      it('should return true', function(done) {
-        dbHandler.deleteImage(image._id)
-        .then(function(res) {
-          res.should.be(true);
-          done();
-        });
-        done();
-      });
-    });
-  });
-
   after(() => helper.close());
 });

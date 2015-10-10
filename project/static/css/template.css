@@ -118,3 +118,18 @@ a:focus, a:active, .btn-link:active, .btn-link:focus{
   height: 350px;
   overflow-y: scroll;
 }
+
+.imageContainer {
+  height: 150px;
+  width: 150px;
+  margin-top: 10px;
+  margin-left: 10px;
+  display: inline-block;
+}
+
+#imageUpload {
+  padding-top: 50px;
+  text-align: center;
+  border: 4px black dashed;
+  vertical-align: top;
+}
