@@ -28,7 +28,7 @@ describe('Profile', function() {
 
   it('should get valid profile', function() {
     browser.get('/#/profile/aaa');
-    expect(element.all(by.css('h3')).get(1).getText()).toMatch(/^uname\s/);
+    expect(element(by.id('usernamelink')).getText()).toMatch(/^uname/);
     expect(element.all(by.css('.messagetext')).last().getText()).toBe('hellofriend');
   });
 
@@ -50,7 +50,7 @@ describe('Profile', function() {
   it('should be denied access', function() {
     browser.get('/#/profile/nonfriend');
     browser.sleep(150);
-    expect(element.all(by.css('h3')).get(1).getText()).toMatch(/^notyourfriend\s/);
+    expect(element(by.exactBinding('username')).getText()).toMatch(/^notyourfriend\s/);
   });
 
   it('should not show friendstab on non-owned profile', function() {

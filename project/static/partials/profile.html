@@ -1,14 +1,14 @@
 <div class="row col-xs-12" id="profilecontent">
   <div class="row">
-    <h3 class="col-xs-6">{{ username }}
-    <small>
-      <span ng-if="id === $storage._id">This is you!</span>
-      <button ng-click="manageFriend()" class="btn btn-link" ng-if="id !== $storage._id">{{ isFriend ? 'Unfriend' : 'Add friend' }}</button>
-    </small>
-    <small>
-      <button ng-click="startChat()" ng-if="isFriend && id !== $storage._id" class="btn btn-link">Send message</button>
-    </small>
-  </h3>
+    <h3 class="col-xs-7">{{ username }}
+      <small>
+        <span ng-if="id === $storage._id">This is you!</span>
+        <button ng-click="manageFriend()" class="btn btn-link" ng-if="id !== $storage._id">{{ isFriend ? 'Unfriend' : 'Add friend' }}</button>
+      </small>
+      <small>
+        <button ng-click="startChat()" ng-if="isFriend && id !== $storage._id" class="btn btn-link">Send message</button>
+      </small>
+    </h3>
   </div>
   <tabset ng-if="isFriend" class="voffset6">
     <tab id="messageTab" heading="Messages" >

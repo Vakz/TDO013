@@ -1,5 +1,6 @@
 "use strict";
-
+/* istanbul ignore next */ 
+(function() {
 let config = require('./config');
 
 let strings = require('./strings');
@@ -74,3 +75,4 @@ let ProfileWatcher = function(dbHandler) {
 };
 
 module.exports = ProfileWatcher;
+})();

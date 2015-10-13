@@ -92,6 +92,21 @@ describe('Template', function() {
     expect(browser.getCurrentUrl()).toMatch(/login/);
   });
 
+  it('should search for a user', function() {
+    // Log in
+    browser.get('/#/login');
+    element(by.name('username')).sendKeys("uname");
+    element(by.name('password')).sendKeys("hellothere");
+    element(by.id('submit')).click();
+    browser.sleep(100);
+
+    let searchbar = element(by.id('searchinput'));
+    searchbar.sendKeys('uname');
+    let result = element(by.repeater('match in matches track by $index').row(0));
+    expect(result.getText()).toBe('uname');
+
+  });
+
   afterAll(function(done) {
     server.stop();
     done();

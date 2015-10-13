@@ -743,7 +743,6 @@ describe('RequestHandler', function() {
         let req = httpMocks.createRequest({method:'GET', url: 'getMessages?id=' + users[1]._id + '&after=' + messages[0].time});
         req.session = {loggedIn: true, _id: users[0]._id};
         let res = setupResponse(function(data) {
-          console.log(data);
           res.statusCode.should.equal(200);
           JSON.parse(data)[0]._id.should.equal(messages[1]._id);
           done();
@@ -1284,6 +1283,136 @@ describe('RequestHandler', function() {
         });
         reqHandler.getFriends(req, res);
       });
+    });
+  });
+
+  describe('addImage', function() {
+    describe('Attempt to add when not logged in', function() {
+      it('should return 403', function(done) {
+        let req = httpMocks.createRequest();
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(403);
+          done();
+        });
+        reqHandler.addImage(req, res);
+      });
+    });
+
+    describe('Upload no file', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest();
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.addImage(req, res);
+      });
+    });
+
+    describe('Upload valid file', function() {
+      let user = null;
+      before(function(done) {
+        dbHandler.registerUser({username: 'userOne', password: 'pw'})
+        .then((res) => user = res)
+        .then(() => done());
+      });
+
+      after(cleanDb);
+
+      it('should return 200', function(done) {
+        let req = httpMocks.createRequest();
+        req.session = {loggedIn: true, _id: user._id};
+        req.file = {filename: 'filename'};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(200);
+
+          JSON.parse(data).name.should.equal('filename');
+          done();
+        });
+        reqHandler.addImage(req, res);
+      });
+    });
+  });
+
+  describe('getImages', function() {
+    describe('Get when not logged in', function() {
+      it('should return 403', function(done) {
+        let req = httpMocks.createRequest();
+        req.session = {};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(403);
+          done();
+        });
+        reqHandler.getImages(req, res);
+      });
+    });
+
+    describe('No id parameter', function() {
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest();
+        req.session = {loggedIn: true};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          done();
+        });
+        reqHandler.getImages(req, res);
+      });
+    });
+
+    describe('Get images of non-friend', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => done());
+      });
+
+      it('should return 400', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/getImages?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          res.statusCode.should.equal(400);
+          data.should.equal(strings.noAccess);
+          done();
+        });
+        reqHandler.getImages(req, res);
+      });
+
+      after (cleanDb);
+    });
+
+    describe('Make valid image request', function() {
+      let users = null;
+      before(function(done) {
+        Q.all([
+          dbHandler.registerUser({username: 'userOne', password: 'pw'}),
+          dbHandler.registerUser({username: 'userTwo', password: 'pw'})
+        ])
+        .then((res) => users = res)
+        .then(() => dbHandler.newFriendship(users[0]._id, users[1]._id))
+        .then(() => dbHandler.addImage(users[1]._id, 'image.jpg'))
+        .then(() => done())
+        .done();
+      });
+
+      it('should return the image', function(done) {
+        let req = httpMocks.createRequest({method: 'GET', url:'/getImages?id=' + users[1]._id});
+        req.session = {loggedIn: true, _id: users[0]._id};
+        let res = setupResponse(function(data) {
+          console.log(data);
+          res.statusCode.should.equal(200);
+          JSON.parse(data)[0].name.should.equal('image.jpg');
+          done();
+        });
+        reqHandler.getImages(req, res);
+      });
+
+      after(cleanDb);
     });
   });
 

@@ -35,7 +35,8 @@ var strings = {
   notOnline: "User is not online",
   sendSelf: "Don't send messages to yourself",
   invalidMessage: 'Message object is invalid',
-  invalidImageName: 'Image name is invalid'
+  invalidImageName: 'Image name is invalid',
+  noImage: 'No image was uploaded'
 };
 
 Object.freeze(strings);

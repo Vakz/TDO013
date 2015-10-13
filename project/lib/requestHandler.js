@@ -284,6 +284,7 @@ let RequestHandler = function(dbHandler) {
       errorHandler(res, new AuthenticationError(strings.notLoggedIn));
       error = true;
     }
+    else if (!req.file) errorHandler(res, new ArgumentError(strings.noImage));
     else {
       dbHandler.addImage(req.session._id, req.file.filename)
       .then((image) => res.status(200).json(image))
@@ -293,19 +294,21 @@ let RequestHandler = function(dbHandler) {
       });
     }
     // In case of error, delete the uploaded file
-    if (error) {
+    if (error && req.file) {
       require('fs').unlink('static/image/' + req.file.filename);
     }
   };
 
   this.getImages = function(req, res) {
     if (!req.session.loggedIn) errorHandler(res, new AuthenticationError(strings.notLoggedIn));
-    if (!req.query.id) errorHandler(res, new ArgumentError(strings.noParamId));
-    hasAccess(req.query.id, req)
-    .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
-    .then(() => dbHandler.getImages(req.query.id))
-    .then((images) => res.status(200).json(images))
-    .catch((err) => errorHandler(res, err));
+    else if (!req.query.id) errorHandler(res, new ArgumentError(strings.noParamId));
+    else {
+      hasAccess(req.query.id, req)
+      .then((res) => { if (!res) throw new ArgumentError(strings.noAccess); })
+      .then(() => dbHandler.getImages(req.query.id))
+      .then((images) => res.status(200).json(images))
+      .catch((err) => errorHandler(res, err));
+    }
   };
 };
 
