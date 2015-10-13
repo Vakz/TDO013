@@ -235,7 +235,7 @@ angular.module("socialApplication")
     profileWatcher = null;
   };
 
-  this.start = function() {
+  var start = function() {
     profileWatcher.onmessage = function(message) {
       $rootScope.$broadcast('NewProfileMessage', message.data);
     };
@@ -251,5 +251,17 @@ angular.module("socialApplication")
     $rootScope.$on('logout', function() {
       terminate();
     });
+  };
+
+  return {start: start};
+}])
+.service('ImageService', ['$http', function($http) {
+  return { getImages: function(id) {
+      return $http({
+        method: 'GET',
+        url: '/getImages',
+        params: { id: id }
+      });
+    }
   };
 }]);

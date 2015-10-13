@@ -69,7 +69,7 @@ a:focus, a:active, .btn-link:active, .btn-link:focus{
   margin-left: 10px;
 }
 
-.modal-content {
+.modal-sm .modal-content{
   padding: 25px;
   padding-left: 45px;
 }
@@ -132,4 +132,14 @@ a:focus, a:active, .btn-link:active, .btn-link:focus{
   text-align: center;
   border: 4px black dashed;
   vertical-align: top;
+}
+
+.thumbnail {
+  height: 150px;
+  width: 150px;
+}
+
+#largeImage {
+  width: 100%;
+  height: 100%;
 }

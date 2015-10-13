@@ -72,6 +72,8 @@ let SocialServer = function(){
 
     app.get('/getMessages', requestHandler.getMessages);
 
+    app.get('/getImages', requestHandler.getImages);
+
     app.post('/addImage', upload.single('file'), requestHandler.addImage);
 
     app.use(function(req, res) {

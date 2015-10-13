@@ -228,8 +228,11 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
     ChatService.setActive(chat.id, chat.username);
   };
 }])
-.controller('ImageController', ['$scope', 'Upload', function($scope, Upload) {
-  $scope.images = [];
+.controller('ImageController', ['$scope', 'Upload', 'ImageService', '$modal', function($scope, Upload, ImageService, $modal) {
+  ImageService.getImages($scope.id)
+  .then(function(res) {
+    $scope.images = res.data;
+  });
   $scope.$watch('file', function() {
     if($scope.file && !$scope.file.$error) {
       console.dir($scope.file);
@@ -241,6 +244,14 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
         $scope.images.push(data);
       });
     }
-
   });
+
+  $scope.open = function(name) {
+    $scope.activeImage = name;
+    var modalInstance = $modal.open({
+      templateUrl: 'partials/imageModal.html',
+      scope: $scope,
+      size: 'lg'
+    });
+  };
 }]);
