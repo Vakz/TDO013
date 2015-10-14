@@ -9,7 +9,6 @@ describe('Login', function() {
   beforeAll(function() {
     server.start();
     browser.addMockModule('httpBackendMock', require('./backend'));
-
   });
 
   beforeEach(function() {

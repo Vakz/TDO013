@@ -59,8 +59,9 @@ function($scope, $localStorage, $modal, UserService, $location) {
         authcall.then(function(res) {
           angular.extend($localStorage, res.data, {loggedIn: true});
           $location.path('/profile');
-          ChatService.start();
           ProfileWatchService.start();
+          ChatService.start();
+
         }, function(err) {
           $scope.error = err.data;
           $scope.errors.loginError = true;

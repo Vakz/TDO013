@@ -153,7 +153,7 @@ angular.module("socialApplication")
 
   var start = function() {
     if (isRunning) return;
-    socket = io(':45556');
+    socket = io(':45556', {'force new connection': true});
     isRunning = true;
     socket.on('chatmessage', function(message) {
       // If message.fromId is same as the one stored in localStorage, we are receiving
@@ -228,7 +228,6 @@ angular.module("socialApplication")
 }])
 .service('ProfileWatchService', ['$rootScope', function($rootScope) {
   var profileWatcher = null;
-  profileWatcher = new Worker('js/watcher.js');
 
   var terminate = function() {
     if (profileWatcher) profileWatcher.terminate();
@@ -236,6 +235,7 @@ angular.module("socialApplication")
   };
 
   var start = function() {
+    if(!profileWatcher) profileWatcher = new Worker('js/watcher.js');
     profileWatcher.onmessage = function(message) {
       $rootScope.$broadcast('NewProfileMessage', message.data);
     };

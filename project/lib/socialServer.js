@@ -10,6 +10,7 @@ let bodyParser = require('body-parser');
 let DatabaseHandler = require('./databaseHandler');
 var upload = require('multer')( { dest: 'static/images/', limits: { fileSize: 5 * 1000 * 1000 } } );
 
+
 let SocialServer = function(){
 
   let app = express();
