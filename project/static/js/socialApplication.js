@@ -1,6 +1,7 @@
 "use strict";
 var app = angular.module('socialApplication', ['ngRoute', 'ngAnimate', 'ui.bootstrap', 'socialSiteControllers'])
-.config(["$routeProvider", function($routeProvider) {
+.config(["$routeProvider",
+function($routeProvider) {
   $routeProvider
   .when('/login', {
     templateUrl: 'partials/auth.html',
@@ -23,7 +24,8 @@ var app = angular.module('socialApplication', ['ngRoute', 'ngAnimate', 'ui.boots
     secure: true
   })
   .otherwise('/profile');
-}]).run(['$localStorage', '$location', '$rootScope', 'ChatService', 'ProfileWatchService', function($localStorage, $location, $rootScope, ChatService, ProfileWatchService ) {
+}]).run(['$localStorage', '$location', '$rootScope', 'ChatService', 'ProfileWatchService',
+function($localStorage, $location, $rootScope, ChatService, ProfileWatchService ) {
   $rootScope.$on('$routeChangeStart', function(e, next, current) {
     if (next.$$route && next.$$route.secure && !$localStorage.loggedIn) {
       e.preventDefault();

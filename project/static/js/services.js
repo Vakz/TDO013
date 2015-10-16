@@ -51,34 +51,35 @@ angular.module("socialApplication")
   };
   return { getUsernamesById: getUsernamesById, search: search };
 }])
-.service('ProfileService', ['$rootScope', '$http', '$q', 'UserService', function($rootScope, $http, $q, UserService) {
+.service('ProfileService', ['$rootScope', '$http', '$q', 'UserService',
+function($rootScope, $http, $q, UserService) {
   var getProfile = function(id) {
     return $q(function(resolve, reject) {
       var profile;
+
+      var getMessageSenderIDs = function(result) {
+        var ids = new Set();
+        profile = result.data;
+        profile.messages.forEach((message) => ids.add(message.from));
+        // No need calling server if no ids to retrieve
+        if (ids.size !== 0) return UserService.getUsernamesById(Array.from(ids));
+        return { data: [] };
+      };
+
+      var parseNames = function(users) {
+        profile.users = new Map();
+        users.data.forEach((user) => profile.users.set(user._id, user.username));
+        return profile;
+      };
+
       $http({
         method: 'GET',
         url: 'getProfile',
         params: {id: id}
       })
-      .then(function(result) {
-        var ids = new Set();
-        profile = result.data;
-        profile.messages.forEach(function(message) {
-          ids.add(message.from);
-        });
-        // No need calling server if no ids to retrieve
-        if (ids.size !== 0) {
-          return UserService.getUsernamesById(Array.from(ids));
-        }
-        return { data: [] };
-      })
-      .then(function(users) {
-        profile.users = new Map();
-        users.data.forEach(function(user) {
-          profile.users.set(user._id, user.username);
-        });
-        resolve(profile);
-      })
+      .then(getMessageSenderIDs)
+      .then(parseNames)
+      .then(resolve)
       .catch(function(err) {
         if(err.status === 403) $rootScope.$broadcast('UnexpectedLoggedOut');
         reject(new Error(err.data));
@@ -118,7 +119,11 @@ angular.module("socialApplication")
       params: {id: id, after: (after || 0)}
     });
   };
-  return { sendMessage: sendMessage, removeMessage: removeMessage, getMessages: getMessages };
+  return {
+    sendMessage: sendMessage,
+    removeMessage: removeMessage,
+    getMessages: getMessages
+  };
 }])
 .service('FriendService', ['$http', function($http) {
   var unfriend = function(id) {
@@ -143,7 +148,11 @@ angular.module("socialApplication")
       url: 'getFriends',
     });
   };
-  return {unfriend: unfriend, addFriend: addFriend, getFriends: getFriends};
+  return {
+    unfriend: unfriend,
+    addFriend: addFriend,
+    getFriends: getFriends
+  };
 }])
 .service('ChatService', ['$rootScope', '$localStorage', function($rootScope, $localStorage) {
   var socket = null;
@@ -176,10 +185,8 @@ angular.module("socialApplication")
     if (!chats.has(id)) {
       chats.set(id, {username: username, messages: []});
       $rootScope.$broadcast('newChat', id, username);
-      if (!active) {
-        setActive(id, username);
-      }
     }
+    setActive(id, username);
   };
 
   var getActiveChats = function() {
@@ -194,9 +201,7 @@ angular.module("socialApplication")
     return active;
   };
 
-  var getActiveChat = function() {
-    return chats.get(active.id);
-  };
+  var getActiveChat = () => chats.get(active.id);
 
   var send = function(message) {
     if (active) socket.emit('chatmessage', {_id: active.id, message: message});
@@ -210,8 +215,10 @@ angular.module("socialApplication")
   };
 
   $rootScope.$on('logout', function() {
+    socket.close();
     socket = null;
     active = null;
+    isRunning = false;
     chats.clear();
     $rootScope.$broadcast('chatReset');
   });
@@ -256,12 +263,11 @@ angular.module("socialApplication")
   return {start: start};
 }])
 .service('ImageService', ['$http', function($http) {
-  return { getImages: function(id) {
-      return $http({
-        method: 'GET',
-        url: '/getImages',
-        params: { id: id }
-      });
-    }
+  return {
+    getImages: (id) => http({
+      method: 'GET',
+      url: '/getImages',
+      params: { id: id }
+    })
   };
 }]);

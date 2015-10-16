@@ -30,6 +30,7 @@ let SocialServer = function(){
     app.use(clientSessions(sessionsSettings));
     app.use(function(req, res, next) {
       if (req.session.loggedIn) {
+        // Verify that users token is still valid
         dbHandler.checkToken(req.session.token, req.session._id)
         .then(function(res) {
           if (!res) req.session.reset();
@@ -84,17 +85,12 @@ let SocialServer = function(){
   }
 
   this.start = function() {
-    if (Number.isInteger(config.get('server:port'))) {
-      dbHandler.connect()
-      .then(function() {
-        server = app.listen(config.get('server:port'));
-        chat = new (require('./chat'))(dbHandler);
-      })
-      .done();
-    }
-    else{
-      throw new errors.ArgumentError("Port number not an integer");
-    }
+    dbHandler.connect()
+    .then(function() {
+      server = app.listen(config.get('server:port'));
+      chat = new (require('./chat'))(dbHandler);
+    })
+    .done();
   };
 
   this.stop = function() {

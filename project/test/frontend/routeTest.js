@@ -3,7 +3,7 @@
 process.env['database:db'] = 'social_website_e2e_test';
 
 describe('Route', function() {
-  let server = new (require('../../../lib/socialServer'))();
+  let server = new (require('../../lib/socialServer'))();
 
   afterEach(function() {
     browser.executeScript('window.localStorage.clear();');

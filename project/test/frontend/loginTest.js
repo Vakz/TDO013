@@ -1,27 +1,23 @@
 "use strict";
 
-/*
- As register and login are built on the same template and controller,
- it actually has almost identical tests as well.
-*/
-
-// Doing this on a separate db as it will require cleaning between tests
 process.env['database:db'] = 'social_website_e2e_test';
 
-describe('Route', function() {
-  let server = new (require('../../../lib/socialServer'))();
+describe('Login', function() {
+  let server = new (require('../../lib/socialServer'))();
   let EC = protractor.ExpectedConditions;
 
-  browser.addMockModule('httpBackendMock', require('./backend'));
+  beforeAll(function() {
+    server.start();
+    browser.addMockModule('httpBackendMock', require('./backend'));
+  });
+
+  beforeEach(function() {
+    browser.get('/#/login');
+  });
 
   afterEach(function() {
     browser.executeScript('window.localStorage.clear();');
     browser.manage().deleteAllCookies();
-  });
-
-  beforeEach(function() {
-    browser.get('/#/register');
-    expect(element(by.id("usernamelink")).getText()).toBe('Not logged in');
   });
 
   it('form should not be valid', function() {
@@ -36,17 +32,14 @@ describe('Route', function() {
     expect(element(by.id("submit")).isEnabled()).toBe(false);
   });
 
-  it('registration should be valid', function() {
-    let passwordInput = element(by.name('password'));
-    let usernameInput = element(by.name('username'));
-    let submitButton = element(by.id('submit'));
-
+  it('login should be valid', function() {
     let complete = EC.and(function() {
       return browser.getCurrentUrl().then((url) => /\/profile$/.test(url));
     });
 
-    usernameInput.sendKeys("uname");
-    passwordInput.sendKeys("hellothere");
+    element(by.name('username')).sendKeys("uname");
+    element(by.name('password')).sendKeys("hellothere");
+    let submitButton = element(by.id('submit'));
 
     expect(submitButton.isEnabled()).toBe(true);
     submitButton.click();
@@ -55,21 +48,16 @@ describe('Route', function() {
     expect(element(by.id('usernamelink')).getText()).toBe('uname');
   });
 
-  it('registration should fail', function() {
-    let passwordInput = element(by.name('password'));
-    let usernameInput = element(by.name('username'));
+  it('login should fail', function(done) {
 
-    usernameInput.sendKeys("uname");
-    passwordInput.sendKeys("wrongpassword");
-
+    element(by.name('username')).sendKeys("uname");
+    element(by.name('password')).sendKeys("wrongpassword");
     element(by.id('submit')).click();
-    // Give server one second to respond
     browser.sleep(100);
-    expect(element(by.css('.bg-danger')).isPresent()).toBe(true);
-  });
 
-  beforeAll(function() {
-    server.start();
+    // Assert error message is shown
+    expect(element(by.css('.bg-danger')).isPresent()).toBe(true);
+    done();
   });
 
   afterAll(function(done) {

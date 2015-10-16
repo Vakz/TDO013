@@ -36,7 +36,8 @@ var strings = {
   sendSelf: "Don't send messages to yourself",
   invalidMessage: 'Message object is invalid',
   invalidImageName: 'Image name is invalid',
-  noImage: 'No image was uploaded'
+  noImage: 'No image was uploaded',
+  tokenTooShort: 'Token length must be at least 1'
 };
 
 Object.freeze(strings);

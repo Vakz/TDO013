@@ -54,14 +54,15 @@ function($scope, $localStorage, $modal, UserService, $location) {
       if (!$scope.pending) {
         $scope.pending = true;
         var authcall = null;
+        // Check if we are logging in or registering a new user
         if ($scope.login) authcall = AuthService.login(user.username, user.password);
         else authcall = AuthService.register(user.username, user.password);
         authcall.then(function(res) {
+          // Log in successful
           angular.extend($localStorage, res.data, {loggedIn: true});
           $location.path('/profile');
           ProfileWatchService.start();
           ChatService.start();
-
         }, function(err) {
           $scope.error = err.data;
           $scope.errors.loginError = true;
@@ -73,36 +74,38 @@ function($scope, $localStorage, $modal, UserService, $location) {
 }])
 .controller('ProfileController', ['$rootScope', '$scope', '$route', '$routeParams', 'ProfileService', 'UserService', 'FriendService', 'ChatService', 'MessageService',
 function($rootScope, $scope, $route, $routeParams, ProfileService, UserService, FriendService, ChatService, MessageService) {
-  var sortMessages = function(a, b) {
-    return (a.time > b.time);
-  };
-
   angular.extend($scope, {
     isFriend: false,
     error: "",
     id: $routeParams.id || $scope.$storage._id,
   });
   $scope.ownProfile = $scope.id === $scope.$storage._id;
-  ProfileService.getProfile($scope.id)
-  .then(function(profile) {
-    profile.messages = profile.messages.sort(sortMessages);
+
+  var loadFriendslist = function() {
+    FriendService.getFriends()
+    .then(function(users) {
+      $scope.friends = users.data;
+    });
+  };
+
+  var loadProfileContent = function(profile) {
+    profile.messages = profile.messages.sort((a,b) => a.time > b.time);
     $scope.isFriend = true;
     angular.extend($scope, profile);
     $rootScope.$broadcast('ProfileChanged', $scope.id);
-    if ($scope.ownProfile) {
-      FriendService.getFriends()
-      .then(function(users) {
-        $scope.friends = users.data;
-      });
-    }
-  },
-  function(err) {
+    if ($scope.ownProfile) loadFriendslist();
+  };
+
+  var nonfriendFallback = function() {
     UserService.getUsernamesById([$scope.id])
     .then(function(user) {
       if(user.data.length > 0) angular.extend($scope, user.data[0]);
       else $scope.error = "No user with that id";
     });
-  });
+  };
+
+  ProfileService.getProfile($scope.id)
+  .then(loadProfileContent, nonfriendFallback);
 
   $rootScope.$on('NewProfileMessage', function(event, message) {
     console.log(message);
@@ -121,28 +124,32 @@ function($rootScope, $scope, $route, $routeParams, ProfileService, UserService, 
     $route.reload();
   };
 }])
-.controller('MessageController', ['$rootScope', '$scope', 'MessageService', function($rootScope, $scope, MessageService) {
+.controller('MessageController', ['$rootScope', '$scope', 'MessageService',
+function($rootScope, $scope, MessageService) {
   $scope.pending = false;
+
+  var send = function(message) {
+    $scope.pending = true;
+    MessageService.sendMessage($scope.id, $scope.messagebox)
+    .then(sendSuccessful,
+    function(err) {
+      $scope.errors.messageError = true;
+      $scope.error = err.data;
+    })
+    .finally(() => $scope.pending = false);
+  };
+
+  var sendSuccessful = function() {
+    if (!$scope.users.has($scope.$storage._id)) $scope.users.set($scope.$storage._id, $scope.$storage.username);
+    $scope.errors.messageError = false;
+    $rootScope.$broadcast('NewProfileMessages');
+    $scope.messagebox = null;
+    $scope.messageform.$setPristine();
+  };
+
   $scope.submit = function(message) {
     $scope.errors = {};
-    if(!$scope.pending) {
-      $scope.pending = true;
-      MessageService.sendMessage($scope.id, $scope.messagebox)
-      .then(function(res) {
-        if (!$scope.users.has($scope.$storage._id)) $scope.users.set($scope.$storage._id, $scope.$storage.username);
-        $scope.errors.messageError = false;
-        $rootScope.$broadcast('NewProfileMessages');
-        $scope.messagebox = null;
-        $scope.messageform.$setPristine();
-      },
-      function(err) {
-        $scope.errors.messageError = true;
-        $scope.error = err.data;
-      })
-      .finally(function() {
-        $scope.pending = false;
-      });
-    }
+    if(!$scope.pending) send(message);
   };
   $scope.remove = function(id) {
     MessageService.removeMessage(id)
@@ -182,10 +189,7 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
       .then(function(res) {
         if ($scope.reset) reset();
         else $scope.message = "Password changed!";
-      },
-      function(err) {
-        $scope.message = err.data;
-      })
+      }, (err) => $scope.message = err.data)
       .finally(() => $scope.pending = false);
     }
   };
@@ -194,7 +198,8 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
     .then(reset);
   };
 }])
-.controller('ChatController', ['$scope', '$rootScope', 'ChatService', function($scope, $rootScope, ChatService) {
+.controller('ChatController', ['$scope', '$rootScope', 'ChatService',
+function($scope, $rootScope, ChatService) {
   $scope.openChats = [];
   $scope.active = null;
   $scope.chat = [];
@@ -229,7 +234,8 @@ function($scope, AuthService, $modalInstance, $localStorage, $location) {
     ChatService.setActive(chat.id, chat.username);
   };
 }])
-.controller('ImageController', ['$scope', 'Upload', 'ImageService', '$modal', function($scope, Upload, ImageService, $modal) {
+.controller('ImageController', ['$scope', 'Upload', 'ImageService', '$modal',
+function($scope, Upload, ImageService, $modal) {
   ImageService.getImages($scope.id)
   .then(function(res) {
     $scope.images = res.data;

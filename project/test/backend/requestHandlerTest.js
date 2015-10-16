@@ -1404,7 +1404,6 @@ describe('RequestHandler', function() {
         let req = httpMocks.createRequest({method: 'GET', url:'/getImages?id=' + users[1]._id});
         req.session = {loggedIn: true, _id: users[0]._id};
         let res = setupResponse(function(data) {
-          console.log(data);
           res.statusCode.should.equal(200);
           JSON.parse(data)[0].name.should.equal('image.jpg');
           done();

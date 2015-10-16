@@ -3,6 +3,7 @@
 let config = require('./config');
 let bcrypt = require('bcrypt');
 let errors = require('./errors');
+let strings = require('./strings');
 let Q = require('q');
 let RandExp = require('randexp');
 let UserSecurity = {
@@ -20,7 +21,7 @@ UserSecurity.getSessionOptions = function() {
 
 UserSecurity.generateToken = function(length) {
   return Q.Promise(function(resolve, reject, notify) {
-    if (length < 1) reject(new errors.ArgumentError("Token length must be at least 1"));
+    if (length < 1) reject(new errors.ArgumentError(strings.tokenTooShort));
     else {
       let pattern = new RegExp("^[" + config.get('security:sessions:tokenChars') + "]{" + length + "}$");
       resolve(new RandExp(pattern).gen());
@@ -30,7 +31,7 @@ UserSecurity.generateToken = function(length) {
 
 UserSecurity.hash = function(str) {
   return Q.Promise(function(resolve, reject, notify) {
-    if (str.length < 1) reject(new errors.ArgumentError("Invalid password"));
+    if (str.length < 1) reject(new errors.ArgumentError(strings.passwordTooShort));
     else {
       Q.ninvoke(bcrypt, "hash", str, config.get('security:passwords:saltRounds'))
       .then(resolve, reject);
@@ -40,7 +41,7 @@ UserSecurity.hash = function(str) {
 
 UserSecurity.verifyHash = function(str, hash) {
   return Q.Promise(function(resolve, reject, notify) {
-    if (str.length < 1) reject(new errors.ArgumentError("Cannot check zero-length string"));
+    if (str.length < 1) reject(new errors.ArgumentError(strings.passwordTooShort));
     else {
       Q.ninvoke(bcrypt, "compare", str, hash)
       .then(resolve, reject);

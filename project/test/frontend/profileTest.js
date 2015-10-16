@@ -4,7 +4,7 @@
 process.env['database:db'] = 'social_website_e2e_test';
 
 describe('Profile', function() {
-  let server = new (require('../../../lib/socialServer'))();
+  let server = new (require('../../lib/socialServer'))();
   let EC = protractor.ExpectedConditions;
 
   beforeAll(function() {

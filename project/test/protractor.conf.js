@@ -1,10 +1,10 @@
 exports.config = {
   specs: [
-    'frontend/e2e/chatTest.js'
+    'frontend/*Test.js'
   ],
 
   capabilites: {
-    browserName: 'chrome'
+    browserName: 'chrome',
   },
 
   baseUrl: 'http://localhost:45555',

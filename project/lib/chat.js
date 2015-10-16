@@ -27,13 +27,10 @@ var Chat = function(dbHandler) {
 
   var setupSocket = function(user) {
     user.socket.on('disconnect', function() {
-      var u = activeUsers.get(user._id);
-      // Watch out for leaks
+      var u = activeUsers.get(user.info._id);
       if (u) {
         if(u.sockets.length === 1) activeUsers.delete(user.info._id);
-        else {
-          u.sockets.splice(u.sockets.indexOf(user.socket), 1);
-        }
+        else u.sockets.splice(u.sockets.indexOf(user.socket), 1);
       }
     });
 
@@ -49,10 +46,14 @@ var Chat = function(dbHandler) {
           message.message = sanitizer.escape(message.message);
           activeUsers.get(message._id).sockets.forEach(function(socket) {
             socket.emit(socketgroup,
-            { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id, toUsername: activeUsers.get(message._id).info.username, message: message.message });
+            { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id,
+              toUsername: activeUsers.get(message._id).info.username, message: message.message
+            });
           });
           user.socket.emit(socketgroup,
-          { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id, toUsername: activeUsers.get(message._id).info.username, message: message.message });
+          { status: 200, fromId: user.info._id, fromUsername: user.info.username, toId: message._id,
+            toUsername: activeUsers.get(message._id).info.username, message: message.message
+          });
         }
       });
     });
@@ -62,9 +63,7 @@ var Chat = function(dbHandler) {
     var info = getUserInfo(socket.handshake.headers.cookie);
     if (info !== null) {
       if (!activeUsers.has(info._id)) activeUsers.set(info._id, {info: info, sockets: [socket]});
-      else {
-        activeUsers.get(info._id).sockets.push(socket);
-      }
+      else activeUsers.get(info._id).sockets.push(socket);
       setupSocket({info: info, socket: socket});
     }
   });

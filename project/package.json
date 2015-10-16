@@ -5,9 +5,12 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "bower install",
-    "karma": "karma start test/karma.conf.js",
     "protractor": "protractor test/protractor.conf.js",
     "preprotractor": "webdriver-manager update"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vakz/TDP013"
   },
   "author": "",
   "license": "ISC",
@@ -28,11 +31,8 @@
   "devDependencies": {
     "jasmine": "^2.3.2",
     "jasmine-core": "^2.3.4",
-    "karma": "^0.13.10",
-    "karma-chrome-launcher": "^0.2.0",
-    "karma-firefox-launcher": "^0.1.6",
-    "karma-jasmine": "^0.3.6",
     "node-mocks-http": "^1.4.4",
+    "protractor": "^2.5.1",
     "randexp": "^0.4.0",
     "should": "^7.1.0",
     "superagent": "^1.4.0"

@@ -1,5 +1,5 @@
 "use strict";
-/* istanbul ignore next */ 
+/* istanbul ignore next */
 (function() {
 let config = require('./config');
 
@@ -52,7 +52,6 @@ let ProfileWatcher = function(dbHandler) {
       message.username = user.username;
       users.forEach(function(user) {
         if (hasAccess(message.to, user._id)) {
-          console.log('Emitting to ', user._id);
           user.socket.emit('ProfileWatch', message);
         }
       });

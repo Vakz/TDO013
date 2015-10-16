@@ -34,7 +34,6 @@ let errorHandler = function(response, err) {
     response.status(503).send(err.message);
   }
   else {
-    console.error(err.stack);
     response.status(500).send(err.message);
   }
 };
