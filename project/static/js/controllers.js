@@ -108,7 +108,6 @@ function($rootScope, $scope, $route, $routeParams, ProfileService, UserService, 
   .then(loadProfileContent, nonfriendFallback);
 
   $rootScope.$on('NewProfileMessage', function(event, message) {
-    console.log(message);
     if (!$scope.users.has(message.from)) $scope.users.set(message.from, message.username);
     $scope.messages.push(message);
     $rootScope.$digest();
