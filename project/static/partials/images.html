@@ -1,9 +1,7 @@
 <section ng-controller="ImageController" class="col-xs-12">
-  <!--<div ngf-select ngf-drop id="imageUpload" ngf-multiple="false" accept="image/*" ng-model="file" class="imageContainer">Click or drag image here to upload</div>-->
-  <div ng-if="ownProfile" ngf-drop ngf-select ng-model="file" name="image" class="imageContainer" id="imageUpload"
+  <div ng-if="ownProfile" ngf-drop ngf-select ng-model="file" ngf-change="upload($file)" name="file" class="imageContainer" id="imageUpload"
         ngf-drag-over-class="dragover" ngf-multiple="false" ngf-allow-dir="true"
-        accept="image/*,application/pdf"
-        ngf-pattern="'image/*,application/pdf'">Click or drag image here to upload</div>
+        accept="image/*" ngf-pattern="'image/*'">Click or drag image here to upload</div>
   <div ng-repeat="item in images|orderBy:'time':reverse" class="imageContainer" style="background-color:blue;">
     <img class="thumbnail" ng-src="images/{{item.name}}" ng-click="open(item.name)"></img>
   </div>

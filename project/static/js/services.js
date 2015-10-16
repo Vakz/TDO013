@@ -264,7 +264,7 @@ function($rootScope, $http, $q, UserService) {
 }])
 .service('ImageService', ['$http', function($http) {
   return {
-    getImages: (id) => http({
+    getImages: (id) => $http({
       method: 'GET',
       url: '/getImages',
       params: { id: id }

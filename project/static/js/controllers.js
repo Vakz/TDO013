@@ -236,22 +236,21 @@ function($scope, $rootScope, ChatService) {
 }])
 .controller('ImageController', ['$scope', 'Upload', 'ImageService', '$modal',
 function($scope, Upload, ImageService, $modal) {
+
   ImageService.getImages($scope.id)
   .then(function(res) {
     $scope.images = res.data;
   });
-  $scope.$watch('file', function() {
-    if($scope.file && !$scope.file.$error) {
-      console.dir($scope.file);
-      Upload.upload({
-        url: '/addImage',
-        file: $scope.file
-      })
-      .success(function(data) {
-        $scope.images.push(data);
-      });
-    }
-  });
+
+  $scope.upload = function(file) {
+    Upload.upload({
+      url: '/addImage',
+      file: file
+    })
+    .success(function(data) {
+      $scope.images.push(data);
+    });
+  };
 
   $scope.open = function(name) {
     $scope.activeImage = name;
